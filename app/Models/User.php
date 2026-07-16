@@ -2,31 +2,71 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Model
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    protected $primaryKey = 'userID';
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $fillable = [
+        'username',
+        'password',
+        'contact_number',
+        'role',
+        'register_date',
+        'first_name',
+        'last_name',
+        'date_of_birth',
+        'profile_picture',
+        'company_admin_id',
+    ];
+
+    protected $hidden = [
+        'password',
+    ];
+
+    public function expertDetail()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasOne(ExpertDetail::class, 'userID', 'userID');
+    }
+
+    public function companyAdmin()
+    {
+        return $this->belongsTo(CompanyAdmin::class, 'company_admin_id', 'adminID');
+    }
+
+    public function customerOrders()
+    {
+        return $this->hasMany(Order::class, 'customerID', 'userID');
+    }
+
+    public function providerOrders()
+    {
+        return $this->hasMany(Order::class, 'providerID', 'userID');
+    }
+
+    public function sentMessages()
+    {
+        return $this->hasMany(Message::class, 'senderID', 'userID');
+    }
+
+    public function receivedMessages()
+    {
+        return $this->hasMany(Message::class, 'receiverID', 'userID');
+    }
+
+    public function bookmarks()
+    {
+        return $this->hasMany(Bookmark::class, 'customerID', 'userID');
+    }
+
+    public function bookmarkedProviders()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'bookmarks',
+            'customerID',
+            'providerID'
+        );
     }
 }
