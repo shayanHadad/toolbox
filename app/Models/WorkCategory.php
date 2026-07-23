@@ -10,6 +10,7 @@ class WorkCategory extends Model
 
     protected $fillable = [
         'category_name',
+        'url'
     ];
 
     public function experts()
