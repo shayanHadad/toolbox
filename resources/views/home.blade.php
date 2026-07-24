@@ -14,10 +14,7 @@
 
         <p>یافتن سریع خدمات مورد نیاز در هر زمان و هر مکان با کمک جعبه‌ابزار.</p>
 
-        <form class="hero-search" action="{{ url('/search') }}" method="GET">
-            <input type="text" name="q" placeholder="دنبال چه خدماتی می‌گردی؟ مثلا تعمیرات خودرو">
-            <button type="submit">جستجو</button>
-        </form>
+        <img src="{{ asset('images/logo.png') }}" alt="جعبه‌ابزار" class="hero-logo">
 
         <div class="pegboard">
             <div class="pegboard-rail"></div>
@@ -92,7 +89,7 @@
 </section>
 
 {{-- 8. SLIDESHOW --}}
-<div class="slideshow" id="toolbox-slideshow">
+<div class="slideshow" id="toolbox-slideshow" style="margin-top: 110px;">
 
     <div class="slide is-active">
         <div class="slide-media" style="background-image:url('{{ asset('images/slide1.jpeg') }}')"></div>
@@ -134,7 +131,7 @@
 </div>
 </section>
 
-{{-- 9. TESTIMONIALS --}}
+{{-- 9. TESTIMONIALS (real data from orders table) --}}
 <section class="testimonials" id="comments">
     <div class="container">
 
@@ -145,35 +142,28 @@
 
         <div class="t-grid">
 
-            @php
-                $testimonials = [
-                    ['name' => 'سارا محمدی',   'role' => 'دانشجوی کارشناسی ارشد', 'stars' => 5, 'text' => 'برای تبدیل مقاله‌ها به PDF و برعکسش همیشه اینجا میام. سریع و بدون دردسره.', 'avatar' => 'https://picsum.photos/seed/av-sara/100/100'],
-                    ['name' => 'امیر رضایی',   'role' => 'طراح گرافیک',          'stars' => 5, 'text' => 'ابزار فشرده‌سازی تصویرش خیلی به کارم میاد، کیفیت رو خراب نمی‌کنه و سریعه.', 'avatar' => 'https://picsum.photos/seed/av-amir/100/100'],
-                    ['name' => 'نگار حسینی',   'role' => 'حسابدار',             'stars' => 4, 'text' => 'محاسبه‌گرهای مالیش دقیقن و رابط کاربری ساده‌ای داره. خیلی وقتمو گرفته.', 'avatar' => 'https://picsum.photos/seed/av-negar/100/100'],
-                    ['name' => 'کیان اکبری',   'role' => 'توسعه‌دهنده وب',       'stars' => 5, 'text' => 'ابزارهای فرمت کد و JSON خیلی به دردم می‌خوره، هر روز ازش استفاده می‌کنم.', 'avatar' => 'https://picsum.photos/seed/av-kian/100/100'],
-                    ['name' => 'مریم قاسمی',   'role' => 'کارمند اداری',         'stars' => 5, 'text' => 'ادغام فایل‌های PDF قبلاً کلی وقتمو می‌گرفت، الان چند ثانیه‌ست.', 'avatar' => 'https://picsum.photos/seed/av-maryam/100/100'],
-                    ['name' => 'رضا طاهری',    'role' => 'فریلنسر',              'stars' => 4, 'text' => 'یه جعبه‌ابزار کامل که همه‌چی توش هست، دیگه دنبال سایت‌های دیگه نمی‌گردم.', 'avatar' => 'https://picsum.photos/seed/av-reza/100/100'],
-                ];
-            @endphp
-
-            @foreach($testimonials as $t)
+            @forelse ($comments as $order)
                 <div class="t-card">
                     <span class="t-quote-mark">”</span>
                     <div class="t-stars">
                         @for($i = 0; $i < 5; $i++)
-                            {{ $i < $t['stars'] ? '★' : '☆' }}
+                            {{ $i < $order->rating ? '★' : '☆' }}
                         @endfor
                     </div>
-                    <p class="t-text">{{ $t['text'] }}</p>
+                    <p class="t-text">{{ $order->comment }}</p>
                     <div class="t-person">
-                        <span class="t-avatar" style="background-image:url('{{ $t['avatar'] }}')"></span>
+                        <span class="t-avatar" style="background-image:url('{{ asset('images/default-pfp.png') }}')"></span>
                         <span>
-                            <span class="t-name">{{ $t['name'] }}</span><br>
-                            <span class="t-role">{{ $t['role'] }}</span>
+                            <span class="t-name">{{ $order->customer->first_name ?? 'کاربر' }} {{ $order->customer->last_name ?? '' }}</span><br>
+                            <span class="t-role">{{ $order->provider->expertDetail->category->category_name ?? 'مشتری جعبه‌ابزار' }}</span>
                         </span>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <p style="text-align:center;color:var(--text-light);grid-column:1/-1;">
+                    هنوز نظری ثبت نشده.
+                </p>
+            @endforelse
 
         </div>
     </div>

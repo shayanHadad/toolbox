@@ -12,7 +12,6 @@ class Company extends Model
         'name',
         'descriptions',
         'founding_date',
-        'rating_avg',
     ];
 
     public function admins()

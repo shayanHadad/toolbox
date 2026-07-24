@@ -62,7 +62,7 @@
             </a>
 
             <a href="{{ url('/register') }}" class="btn btn-primary btn-sm">
-                ثبت‌نام رایگان
+                ثبت‌نام 
             </a>
 
             <label class="nav-burger" for="nav-toggle" aria-label="باز کردن منو">
@@ -114,7 +114,7 @@
             </a>
 
             <a href="{{ url('/register') }}" class="btn btn-primary">
-                ثبت‌نام رایگان
+                ثبت‌نام
             </a>
 
         </li>

@@ -13,7 +13,6 @@ class ExpertDetail extends Model
     protected $fillable = [
         'userID',
         'categoryID',
-        'rating_avg',
         'description',
         'resume',
     ];

@@ -4,19 +4,12 @@
 
 @section('content')
 
-<link rel="stylesheet" href="{{ asset('css/dashboard/expert.css') }}">
+<link rel="stylesheet" href="{{ asset('css/dashboard/customer.css') }}">
 
 <div class="cd-wrap">
 
-    @if (!$expertDetail || !$expertDetail->categoryID)
-        <div class="cd-warning">
-            ⚠ هنوز دسته‌بندی تخصص خود را انتخاب نکرده‌اید. لطفاً هرچه سریع‌تر از
-            <a href="#profile-form">بخش ویرایش پروفایل</a> یک دسته‌بندی انتخاب کنید.
-        </div>
-    @endif
-
     {{-- Header --}}
-    <div class="cd-header">
+    <div class="cd-header" style="margin-top: 100px;">
         <div class="cd-header-left">
             <img src="{{ asset('images/default-pfp.png') }}" alt="{{ $user->first_name }}" class="cd-avatar">
             <div>
@@ -31,21 +24,21 @@
     <div class="cd-stats">
         <div class="cd-stat">
             <p class="cd-stat-label">سفارش‌های ناتمام</p>
-            <p class="cd-stat-value" style="color:var(--success)">{{ $stats['active'] }}</p>
+            <p class="cd-stat-value" style="color:#3E8E7E">{{ $stats['active'] }}</p>
         </div>
         <div class="cd-stat">
             <p class="cd-stat-label">سفارش‌های به اتمام رسیده</p>
-            <p class="cd-stat-value" style="color:var(--amber)">{{ $stats['completed'] }}</p>
+            <p class="cd-stat-value" style="color:#C9A24B">{{ $stats['completed'] }}</p>
         </div>
         <div class="cd-stat">
             <p class="cd-stat-label">پیام‌های خوانده نشده</p>
-            <p class="cd-stat-value" style="color:var(--danger)">{{ $stats['unread'] }}</p>
+            <p class="cd-stat-value" style="color:#C4573B">{{ $stats['unread'] }}</p>
         </div>
     </div>
 
     <div class="cd-grid">
 
-        {{-- Recent orders (this user is the provider) --}}
+        {{-- Recent orders --}}
         <div class="cd-card">
             <div class="cd-card-head">
                 <p class="cd-card-title">سفارش‌های اخیر</p>
@@ -70,7 +63,7 @@
                 <div class="cd-order">
                     <div class="cd-order-top">
                         <div>
-                            <p class="cd-order-name">{{ $order->customer->first_name ?? 'Customer' }} {{ $order->customer->last_name ?? '' }}</p>
+                            <p class="cd-order-name">{{ $order->provider->first_name ?? 'Provider' }} {{ $order->provider->last_name ?? '' }}</p>
                             <p class="cd-order-meta">
                                 Order #{{ $order->orderID }}
                                 @if ($order->order_date)
@@ -91,13 +84,32 @@
                 </div>
             @empty
                 <div class="cd-empty">
-                    <p>هنوز سفارشی دریافت نکرده‌اید</p>
+                    <p>هنوز سفارشی ندارید</p>
                 </div>
             @endforelse
         </div>
 
         {{-- Sidebar --}}
         <div class="cd-side">
+
+            <div class="cd-card">
+                <div class="cd-card-head">
+                    <p class="cd-card-title">بوکمارک‌ها</p>
+                    <a href="#" class="cd-link">مشاهده همه</a>
+                </div>
+                @forelse ($bookmarkedProviders as $provider)
+                    <div class="cd-row">
+                        <img src="{{ asset('images/default-pfp.png') }}" class="cd-row-avatar" alt="{{ $provider->first_name }}">
+                        <div style="min-width:0">
+                            <p class="cd-row-name">{{ $provider->first_name }} {{ $provider->last_name }}</p>
+                            <p class="cd-row-sub">{{ $provider->expertDetail->specialty ?? 'Provider' }}</p>
+                        </div>
+                    </div>
+                @empty
+                    <p style="font-size:14px;color:#6B7280;padding:8px 0;">هنوز بوکمارکی ندارید.</p>
+                @endforelse
+            </div>
+
             <div class="cd-card">
                 <div class="cd-card-head">
                     <p class="cd-card-title">پیام‌ها</p>
@@ -116,14 +128,15 @@
                         <p class="cd-msg-text">{{ $message->message }}</p>
                     </div>
                 @empty
-                    <p style="font-size:14px;color:var(--text-light);padding:8px 0;">هنوز مسیجی ندارید.</p>
+                    <p style="font-size:14px;color:#6B7280;padding:8px 0;">هنوز پیامی ندارید.</p>
                 @endforelse
             </div>
+
         </div>
     </div>
 
     {{-- Profile edit form --}}
-    <div class="cd-card" id="profile-form" style="margin-top:24px;">
+    <div class="cd-card" id="profile-form" style="margin-top:250px;">
         <div class="cd-card-head">
             <p class="cd-card-title">ویرایش اطلاعات پروفایل</p>
         </div>
@@ -132,7 +145,7 @@
             <div class="cd-alert cd-alert-success">{{ session('success') }}</div>
         @endif
 
-        <form action="{{ route('dashboard.expert.profile.update') }}" method="POST">
+        <form action="{{ route('profile.update') }}" method="POST">
             @csrf
             @method('PATCH')
 
@@ -174,51 +187,20 @@
                     @enderror
                 </div>
 
+                
+                <div class="cd-field">
+                    <label class="cd-label" for="password">رمز عبور جدید</label>
+                    <input type="password" id="password" name="password" class="cd-input" placeholder="خالی بگذارید تا تغییر نکند">
+                    @error('password')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+                
                 <div class="cd-field">
                     <label class="cd-label" for="date_of_birth">تاریخ تولد</label>
                     <input type="date" id="date_of_birth" name="date_of_birth" class="cd-input"
                            value="{{ old('date_of_birth', $user->date_of_birth?->format('Y-m-d')) }}">
                     @error('date_of_birth')
-                        <p class="cd-error">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="cd-field">
-                    <label class="cd-label" for="category_id">دسته‌بندی تخصص</label>
-                    <select id="category_id" name="category_id" class="cd-input">
-                        <option value="">— انتخاب کنید —</option>
-                        @foreach ($categories as $category)
-                            <option value="{{ $category->categoryID }}"
-                                @selected(old('category_id', $expertDetail->categoryID ?? null) == $category->categoryID)>
-                                {{ $category->category_name }}
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('category_id')
-                        <p class="cd-error">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="cd-field cd-field-full">
-                    <label class="cd-label" for="description">توضیحات</label>
-                    <textarea id="description" name="description" class="cd-input" rows="4">{{ old('description', $expertDetail->description ?? '') }}</textarea>
-                    @error('description')
-                        <p class="cd-error">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="cd-field cd-field-full">
-                    <label class="cd-label" for="resume">رزومه</label>
-                    <textarea id="resume" name="resume" class="cd-input" rows="6">{{ old('resume', $expertDetail->resume ?? '') }}</textarea>
-                    @error('resume')
-                        <p class="cd-error">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <div class="cd-field">
-                    <label class="cd-label" for="password">رمز عبور جدید</label>
-                    <input type="password" id="password" name="password" class="cd-input" placeholder="خالی بگذارید تا تغییر نکند">
-                    @error('password')
                         <p class="cd-error">{{ $message }}</p>
                     @enderror
                 </div>

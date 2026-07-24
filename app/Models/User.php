@@ -2,18 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
 
-class User extends Model
+class User extends Authenticatable
 {
+    use Notifiable;
+
+    protected $table = 'users';
+
     protected $primaryKey = 'userID';
+
+    public $incrementing = true;
+
+    protected $keyType = 'int';
 
     protected $fillable = [
         'username',
         'password',
         'contact_number',
         'role',
-        'register_date',
         'first_name',
         'last_name',
         'date_of_birth',
@@ -23,7 +31,16 @@ class User extends Model
 
     protected $hidden = [
         'password',
+        'remember_token',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'date_of_birth' => 'date',
+            'password' => 'hashed',
+        ];
+    }
 
     public function expertDetail()
     {
@@ -68,5 +85,16 @@ class User extends Model
             'customerID',
             'providerID'
         );
+    }
+
+    public function dashboardRoute(): string
+    {
+        return match ((int) $this->role) {
+            0 => 'dashboard.admin',
+            1 => 'dashboard.customer',
+            2 => 'dashboard.expert',
+            3 => 'dashboard.company',
+            default    => 'home',
+        };
     }
 }
