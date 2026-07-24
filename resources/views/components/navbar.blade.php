@@ -7,9 +7,9 @@
         <div class="logo">
             <a href="{{ url('/') }}" title="بازگشت به صفحه اصلی">
                 <img src="{{ asset('images/logo.png') }}"
-                     alt="جعبه‌ابزار لوگو"
-                     loading="lazy"
-                     height="40">
+                    alt="جعبه‌ابزار لوگو"
+                    loading="lazy"
+                    height="40">
                 <span>جعبه‌ابزار</span>
             </a>
         </div>
@@ -57,14 +57,28 @@
         <!-- Right Side -->
         <div class="nav-left">
 
-            <a href="{{ url('/login') }}" class="btn btn-outline btn-sm">
+            @guest
+            <a href="{{ route('login') }}" class="btn btn-outline btn-sm">
                 ورود
             </a>
 
-            <a href="{{ url('/register') }}" class="btn btn-primary btn-sm">
-                ثبت‌نام 
+            <a href="{{ route('register') }}" class="btn btn-primary btn-sm">
+                ثبت‌نام
             </a>
+            @endguest
 
+            @auth
+            <form method="POST" action="{{ route('logout') }}" class="nav-logout-form">
+                @csrf
+                <button type="submit" class="btn btn-outline btn-sm">
+                    خروج
+                </button>
+            </form>
+            <a href="{{ route(auth()->user()->dashboardRoute())}}#profile-form" class="nav-profile-link" title="داشبورد کاربری">
+                <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                <span class="nav-profile-name">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
+            </a>
+            @endauth
             <label class="nav-burger" for="nav-toggle" aria-label="باز کردن منو">
                 <span></span>
             </label>
@@ -76,7 +90,6 @@
     <!-- Mobile Navigation -->
 
     <ul class="nav-mobile-panel">
-
         <li>
             <a href="{{ url('/') }}">
                 🏠 خانه
@@ -108,17 +121,29 @@
         </li>
 
         <li class="nav-mobile-actions">
-
-            <a href="{{ url('/login') }}" class="btn btn-outline">
+            @guest
+            <a href="{{ route('login') }}" class="btn btn-outline">
                 ورود
             </a>
 
-            <a href="{{ url('/register') }}" class="btn btn-primary">
+            <a href="{{ route('register') }}" class="btn btn-primary">
                 ثبت‌نام
             </a>
+            @endguest
 
+            @auth
+            <a href="{{ route(auth()->user()->dashboardRoute())}}#profile-form" class="btn btn-outline">
+                <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img-mobile">
+                داشبورد
+            </a>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-primary">
+                    خروج
+                </button>
+            </form>
+            @endauth
         </li>
-
     </ul>
 
 </nav>

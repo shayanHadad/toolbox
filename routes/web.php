@@ -9,10 +9,26 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Dashboard\ExpertDashboardController;
 use App\Http\Controllers\ExpertProfileController;
 use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MessageController;
+use App\Http\Controllers\BookmarkController;
+use App\Http\Controllers\ContactController;
 
 
 
 Route::get('/', [HomeController::class, 'fetchData'])->name('home');
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::get('/contact', function () {
+    return view('contact');
+})->name('contact');
+
+Route::post('/contact', [ContactController::class, 'send'])
+    ->middleware('auth')
+    ->name('contact.send');
+
 
 Route::get('/register', [RegisterController::class, 'show'])->name('register');
 
@@ -21,24 +37,30 @@ Route::post('/register', [RegisterController::class, 'store'])->name('register.s
 Route::get('/login', [HomeController::class, 'fetchWorkCategories'])->name('login');
 
 Route::get('/dashboard/customer', CustomerDashboardController::class)
-    // ->middleware('auth')
+    ->middleware(['auth.custom', 'role:1'])
     ->name('dashboard.customer');
 
-Route::patch('/profile', [ProfileController::class, 'update'])
-    // ->middleware('auth')
-    ->name('profile.update');
-
+Route::patch('/dashboard/customer/profile', [ProfileController::class, 'update'])
+    ->middleware(['auth.custom', 'role:1'])
+    ->name('customer.profile.update');
 
 Route::get('/dashboard/expert', ExpertDashboardController::class)
-    // ->middleware('auth')
+    ->middleware(['auth.custom', 'role:2'])
     ->name('dashboard.expert');
 
 Route::patch('/dashboard/expert/profile', [ExpertProfileController::class, 'update'])
-    // ->middleware('auth')
-    ->name('dashboard.expert.profile.update');
+    ->middleware(['auth.custom', 'role:2'])
+    ->name('expert.profile.update');
 
 
 Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.store');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-  
+
+Route::get('/messages', [MessageController::class, 'index'])
+    ->middleware(['auth.custom'])
+    ->name('messages.index');
+
+Route::get('/bookmarks', [BookmarkController::class, 'index'])
+    ->middleware(['auth.custom'])
+    ->name('bookmarks.index');

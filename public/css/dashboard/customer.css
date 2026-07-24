@@ -29,7 +29,7 @@
     .cd-order-name { font-weight: 700; margin: 0; color: var(--ink, #101828); }
     .cd-order-meta { font-size: 12px; color: var(--text-light, #66707F); margin: 2px 0 0; }
     .cd-badge { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
-    .cd-badge-progress { background: rgba(31,157,85,.12); color: var(--success, #1F9D55); }
+    .cd-badge-progress { background: rgba(31,157,85,.12); color: #D6455B; }
     .cd-badge-waiting { background: rgba(227,162,52,.15); color: var(--amber-dark, #C9871A); }
     .cd-badge-done { background: rgba(31,157,85,.12); color: var(--success, #1F9D55); }
 

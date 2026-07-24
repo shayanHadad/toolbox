@@ -1,0 +1,136 @@
+/* ===========================
+   HERO
+=========================== */
+
+.contact-hero {
+    min-height: auto;
+    padding: 70px 0;
+}
+
+.contact-hero .hero-content {
+    padding: 20px 0;
+}
+
+/* ===========================
+   LAYOUT
+=========================== */
+
+.contact-container {
+    max-width: 1100px;
+}
+
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 32px;
+    align-items: start;
+}
+
+/* ===========================
+   FORM CARD
+=========================== */
+
+.contact-form-card {
+    padding: 36px;
+}
+
+.contact-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 22px;
+}
+
+.contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ===========================
+   FORM
+=========================== */
+
+.contact-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.contact-input,
+.contact-textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    background: var(--surface);
+}
+
+.contact-textarea {
+    resize: vertical;
+}
+
+.readonly-input {
+    background: var(--paper);
+}
+
+.field-error {
+    color: var(--danger);
+}
+
+.contact-success {
+    color: var(--success);
+    margin-bottom: 16px;
+}
+
+.contact-error {
+    color: var(--danger);
+    margin-bottom: 16px;
+}
+
+/* ===========================
+   LOGIN REQUIRED
+=========================== */
+
+.login-required {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px;
+    background: var(--paper);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.contact-submit {
+    align-self: flex-start;
+}
+
+/* ===========================
+   INFO
+=========================== */
+
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.info-title {
+    margin-bottom: 6px;
+}
+
+/* ===========================
+   RESPONSIVE
+=========================== */
+
+@media (max-width: 900px) {
+
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
