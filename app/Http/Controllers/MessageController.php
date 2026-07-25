@@ -40,7 +40,21 @@ class MessageController extends Controller
                     'unreadCount'  => $unreadCount,
                 ];
             })
-            ->sortByDesc(fn ($c) => $c->lastMessage?->messageID ?? 0)
+            ->sort(function ($a, $b) {
+                // پیام‌های خوانده‌نشده همیشه بالاتر از بقیه
+                $aUnread = $a->unreadCount > 0 ? 1 : 0;
+                $bUnread = $b->unreadCount > 0 ? 1 : 0;
+
+                if ($aUnread !== $bUnread) {
+                    return $bUnread <=> $aUnread;
+                }
+
+                // بعد از اون، به ترتیب تاریخ (جدیدترین اول)
+                $aTime = $a->lastMessage?->created_at;
+                $bTime = $b->lastMessage?->created_at;
+
+                return $bTime <=> $aTime;
+            })
             ->values();
 
         return view('messages.index', [
@@ -76,13 +90,26 @@ class MessageController extends Controller
     }
 
     /**
-     * ارسال پیام به یک متخصص و ریدایرکت به صفحه‌ی چت همون متخصص.
-     * فقط برای کاربرهای لاگین‌کرده با role=1 (مشتری) مجاز است؛
-     * این محدودیت روی روت با میدلور role:1 اعمال شده.
+     * ارسال پیام به یک متخصص (توسط مشتری) یا پاسخ به یک مشتری (توسط متخصص)،
+     * و ریدایرکت به صفحه‌ی چت مشترک.
+     * فقط برای کاربرهای لاگین‌کرده با role=1 (مشتری) یا role=2 (متخصص) مجاز است؛
+     * این محدودیت روی روت با میدلور role:1,2 اعمال شده.
      */
     public function store(Request $request, User $partner)
     {
-        abort_unless($partner->role == 2 && $partner->expertDetail, 404);
+        $user = $request->user();
+
+        abort_if($user->userID === $partner->userID, 404);
+
+        if ($user->role == 1) {
+            // مشتری فقط می‌تونه به متخصص‌هایی که پروفایل تکمیل‌شده دارن پیام بده
+            abort_unless($partner->role == 2 && $partner->expertDetail, 404);
+        } elseif ($user->role == 2) {
+            // متخصص فقط می‌تونه به مشتری‌ها پاسخ بده
+            abort_unless($partner->role == 1, 404);
+        } else {
+            abort(403);
+        }
 
         $data = $request->validate([
             'message' => ['required', 'string', 'max:2000'],
@@ -92,7 +119,7 @@ class MessageController extends Controller
         ]);
 
         Message::create([
-            'senderID'   => $request->user()->userID,
+            'senderID'   => $user->userID,
             'receiverID' => $partner->userID,
             'message'    => $data['message'],
             'status'     => 0, // unread

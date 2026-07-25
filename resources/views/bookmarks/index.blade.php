@@ -17,13 +17,13 @@
             <div class="experts-flash experts-flash-success">{{ session('success') }}</div>
         @endif
 
-        <div class="expert-grid">
+        <div class="expert-grid bookmarks-grid">
 
             @forelse ($providers as $provider)
                 <div class="expert-card">
 
                     <div class="expert-card-top">
-                        <span class="expert-avatar" style="background-image:url('{{ asset('images/default-pfp.png') }}')"></span>
+                        <span class="expert-avatar" style="background-image:url('{{ asset('images/expert.png') }}')"></span>
 
                         @if($provider->expertDetail?->category)
                             <span class="expert-badge">{{ $provider->expertDetail->category->category_name }}</span>

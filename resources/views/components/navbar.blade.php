@@ -32,7 +32,7 @@
             </li>
 
             <li>
-                <a href="{{ url('/componies') }}">
+                <a href="{{ route('companies.index') }}">
                     <i>🏢</i>
                     <span>شرکت‌ها</span>
                 </a>
@@ -75,7 +75,7 @@
                 </button>
             </form>
             <a href="{{ route(auth()->user()->dashboardRoute())}}#profile-form" class="nav-profile-link" title="داشبورد کاربری">
-                <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                <img src="{{ asset(auth()->user()->role == 2 ? 'images/expert.png' : 'images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
                 <span class="nav-profile-name">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
             </a>
             @endauth
@@ -103,7 +103,7 @@
         </li>
 
         <li>
-            <a href="{{ url('/companies') }}">
+            <a href="{{ route('companies.index') }}">
                 🏢 شرکت‌ها
             </a>
         </li>
@@ -133,7 +133,7 @@
 
             @auth
             <a href="{{ route(auth()->user()->dashboardRoute())}}#profile-form" class="btn btn-outline">
-                <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img-mobile">
+                <img src="{{ asset(auth()->user()->role == 2 ? 'images/expert.png' : 'images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img-mobile">
                 داشبورد
             </a>
             <form method="POST" action="{{ route('logout') }}">

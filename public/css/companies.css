@@ -2,12 +2,12 @@
    HERO / SEARCH
 =========================== */
 
-.experts-hero {
+.companies-hero {
     min-height: auto;
     padding: 70px 0 40px;
 }
 
-.experts-hero .hero-content {
+.companies-hero .hero-content {
     padding: 20px 0;
 }
 
@@ -15,11 +15,11 @@
    FILTER BAR
 =========================== */
 
-.experts-section {
+.companies-section {
     padding-top: 10px;
 }
 
-.experts-filter-bar {
+.companies-filter-bar {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
@@ -74,23 +74,23 @@
     text-decoration: underline;
 }
 
-.experts-count {
+.companies-count {
     color: var(--text-light);
     font-size: 14.5px;
     margin-bottom: 20px;
 }
 
 /* ===========================
-   EXPERT CARDS GRID
+   COMPANY CARDS GRID
 =========================== */
 
-.expert-grid {
+.company-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 24px;
 }
 
-.expert-card {
+.company-card {
     position: relative;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -103,19 +103,19 @@
     gap: 14px;
 }
 
-.expert-card:hover {
+.company-card:hover {
     box-shadow: var(--shadow);
     transform: translateY(-4px);
     border-color: transparent;
 }
 
-.expert-card-top {
+.company-card-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.expert-avatar {
+.company-avatar {
     width: 56px;
     height: 56px;
     border-radius: 50%;
@@ -126,12 +126,18 @@
     flex-shrink: 0;
 }
 
-.expert-avatar-lg {
+.company-avatar-lg {
     width: 88px;
     height: 88px;
 }
 
-.expert-badge {
+.company-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.company-badge {
     display: inline-block;
     padding: 5px 14px;
     border-radius: 50px;
@@ -141,13 +147,13 @@
     font-weight: 700;
 }
 
-.expert-name {
+.company-name {
     font-size: 18px;
     font-weight: 800;
     color: var(--ink);
 }
 
-.expert-rating {
+.company-rating {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -155,20 +161,20 @@
     font-size: 15px;
 }
 
-.expert-rating-num {
+.company-rating-num {
     color: var(--text-light);
     font-size: 13px;
     font-family: var(--font-mono);
 }
 
-.expert-desc {
+.company-desc {
     font-size: 14px;
     line-height: 1.8;
     color: var(--text);
     flex: 1;
 }
 
-.expert-card-footer {
+.company-card-footer {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -177,7 +183,12 @@
     border-top: 1px dashed var(--border);
 }
 
-.expert-orders {
+.company-orders {
+    font-size: 12.5px;
+    color: var(--text-light);
+}
+
+.company-founded {
     font-size: 12.5px;
     color: var(--text-light);
 }
@@ -186,7 +197,7 @@
    EMPTY STATE
 =========================== */
 
-.experts-empty {
+.companies-empty {
     grid-column: 1 / -1;
     text-align: center;
     padding: 60px 20px;
@@ -201,7 +212,7 @@
    PAGINATION
 =========================== */
 
-.experts-pagination {
+.companies-pagination {
     display: flex;
     justify-content: center;
     margin-top: 40px;
@@ -255,11 +266,11 @@ a.page-link:hover {
    PROFILE PAGE
 =========================== */
 
-.expert-profile {
+.company-profile {
     padding-top: 40px;
 }
 
-.expert-back-link {
+.company-back-link {
     display: inline-block;
     margin-bottom: 20px;
     color: var(--indigo);
@@ -267,22 +278,22 @@ a.page-link:hover {
     font-size: 14px;
 }
 
-.expert-back-link:hover {
+.company-back-link:hover {
     text-decoration: underline;
 }
 
-.expert-profile-grid {
+.company-profile-grid {
     display: grid;
     grid-template-columns: 1.6fr 1fr;
     gap: 28px;
     align-items: start;
 }
 
-.expert-profile-main {
+.company-profile-main {
     padding: 32px;
 }
 
-.expert-profile-head {
+.company-profile-head {
     display: flex;
     align-items: center;
     gap: 20px;
@@ -291,42 +302,42 @@ a.page-link:hover {
     border-bottom: 1px dashed var(--border);
 }
 
-.expert-profile-head > div {
+.company-profile-head > div {
     display: flex;
     flex-direction: column;
     gap: 8px;
 }
 
-.expert-profile-name {
+.company-profile-name {
     font-size: 24px;
     font-weight: 800;
     color: var(--ink);
 }
 
-.expert-section-title {
+.company-section-title {
     font-size: 16px;
     font-weight: 700;
     color: var(--ink);
     margin: 18px 0 10px;
 }
 
-.expert-section-title:first-of-type {
+.company-section-title:first-of-type {
     margin-top: 0;
 }
 
-.expert-desc-full {
+.company-desc-full {
     font-size: 14.5px;
     line-height: 1.9;
     color: var(--text);
     white-space: pre-line;
 }
 
-.expert-profile-side .t-card {
+.company-profile-side .t-card {
     padding: 26px;
     display: block;
 }
 
-.expert-review {
+.company-review {
     padding: 14px 0;
     border-bottom: 1px dashed var(--border);
     display: flex;
@@ -334,7 +345,7 @@ a.page-link:hover {
     gap: 8px;
 }
 
-.expert-review:last-child {
+.company-review:last-child {
     border-bottom: none;
 }
 
@@ -343,11 +354,11 @@ a.page-link:hover {
 =========================== */
 
 @media (max-width: 900px) {
-    .expert-profile-grid {
+    .company-profile-grid {
         grid-template-columns: 1fr;
     }
 
-    .experts-filter-bar {
+    .companies-filter-bar {
         flex-direction: column;
         align-items: stretch;
     }
@@ -367,299 +378,45 @@ a.page-link:hover {
    FLASH MESSAGES
 =========================== */
 
-.experts-flash {
+.companies-flash {
     padding: 14px 18px;
     border-radius: var(--radius-sm);
     font-size: 14px;
     margin-bottom: 20px;
 }
 
-.experts-flash-success {
+.companies-flash-success {
     background: rgba(31, 157, 85, .1);
     color: var(--success);
     border: 1px solid rgba(31, 157, 85, .25);
 }
 
 /* ===========================
-   BOOKMARK ICON BUTTON
+   CARD ACTIONS
 =========================== */
 
-.btn-icon-form {
-    display: inline-flex;
-}
-
-.btn-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    cursor: pointer;
-    transition: var(--transition);
-    padding: 0;
-}
-
-.btn-icon img {
-    width: 18px;
-    height: 18px;
-    opacity: .55;
-    transition: var(--transition);
-}
-
-.btn-icon:hover {
-    border-color: var(--indigo);
-}
-
-.btn-icon:hover img {
-    opacity: .9;
-}
-
-.btn-icon-active {
-    background: rgba(227, 162, 52, .12);
-    border-color: var(--amber);
-}
-
-.btn-icon-active img {
-    opacity: 1;
-}
-
-.btn-inline-icon {
-    width: 15px;
-    height: 15px;
-    vertical-align: middle;
-    margin-inline-end: 4px;
-    opacity: .85;
-}
-
-/* ===========================
-   EXPERT CARD ACTIONS
-=========================== */
-
-.expert-card-actions {
+.company-card-actions {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
 }
 
-.expert-card-actions .btn {
+.company-card-actions .btn {
     flex: 1 1 auto;
     text-align: center;
     white-space: nowrap;
 }
 
-.expert-profile-actions {
-    display: flex;
-    gap: 10px;
-    margin-inline-start: auto;
-    align-self: flex-start;
-}
-
 @media (max-width: 640px) {
-    .expert-profile-head {
+    .company-profile-head {
         flex-wrap: wrap;
     }
-
-    .expert-profile-actions {
-        margin-inline-start: 0;
-        width: 100%;
-    }
 }
 
-/* ===========================
-   CHAT TEXTAREA (send box)
-=========================== */
-
-.chat-textarea {
-    width: 100%;
-    resize: vertical;
-    min-height: 90px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    font-family: var(--font-body);
-    font-size: 14.5px;
-    color: var(--text);
-}
-
-.chat-textarea:focus {
-    outline: 2px solid var(--indigo-light);
-    outline-offset: 1px;
-}
-
-/* ===========================
-   CHAT / CONVERSATION PAGE
-=========================== */
-
-.chat-wrap {
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    overflow: hidden;
-}
-
-.chat-header {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 20px 26px;
-    border-bottom: 1px solid var(--border);
-}
-
-.chat-header-name {
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--ink);
-}
-
-.chat-header-link {
-    font-size: 13px;
-    color: var(--indigo);
-}
-
-.chat-messages {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding: 24px 26px;
-    max-height: 55vh;
-    overflow-y: auto;
-}
-
-.chat-bubble-row {
-    display: flex;
-    justify-content: flex-end;
-}
-
-.chat-bubble-row-mine {
-    justify-content: flex-start;
-}
-
-.chat-bubble {
-    max-width: 70%;
-    padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    background: var(--paper);
-}
-
-.chat-bubble-mine {
-    background: rgba(30, 58, 95, .08);
-}
-
-.chat-bubble-text {
-    font-size: 14.5px;
-    line-height: 1.8;
-    color: var(--text);
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.chat-bubble-meta {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-    margin-top: 6px;
-}
-
-.chat-bubble-time {
-    font-size: 11px;
-    color: var(--text-light);
-    font-family: var(--font-mono);
-}
-
-.chat-tick {
-    font-size: 12px;
-    letter-spacing: -2px;
-    color: var(--text-light);
-}
-
-.chat-tick-read {
-    color: var(--indigo);
-    letter-spacing: -1px;
-}
-
-.chat-form {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 20px 26px;
-    border-top: 1px solid var(--border);
-}
-
-/* ===========================
-   CONVERSATIONS LIST (INBOX)
-=========================== */
-
-.conversation-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 16px 12px;
-    margin: 0 -12px;
-    border-bottom: 1px dashed var(--border);
-    border-radius: var(--radius-sm);
-    text-decoration: none;
-    transition: var(--transition);
-}
-
-.conversation-row:hover {
-    background: var(--paper);
-}
-
-.conversation-row:last-child {
-    border-bottom: none;
-}
-
-.conversation-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--ink);
-}
-
-.conversation-preview {
-    font-size: 13.5px;
-    color: var(--text-light);
-}
-
-.conversation-meta {
-    margin-inline-start: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 6px;
-}
-
-.conversation-time {
-    font-size: 11.5px;
-    color: var(--text-light);
-    font-family: var(--font-mono);
-}
-
-.conversation-unread {
-    background: var(--danger);
-    color: #fff;
-    font-size: 11px;
-    font-weight: 700;
-    border-radius: 50px;
-    padding: 2px 8px;
-}
-
-/* ===========================
-   DISABLE FLOAT-ON-HOVER
-   (.t-card / .expert-card normally lift on hover;
-   that's not wanted on the chat, messages, bookmarks
-   and expert-profile pages)
-=========================== */
-
-.chat-wrap:hover,
-.expert-profile-main:hover,
-.expert-profile-side .t-card:hover,
-.bookmarks-grid .expert-card:hover,
-.messages-list-card:hover {
+/* disable float-on-hover for non-listing contexts */
+.company-profile-main:hover,
+.company-profile-side .t-card:hover {
     transform: none;
     box-shadow: var(--shadow-sm);
     border-color: var(--border);

@@ -13,12 +13,12 @@
 
         <h1 class="expert-section-title" style="margin-bottom:20px;">پیام‌های من</h1>
 
-        <div class="t-card">
+        <div class="t-card messages-list-card">
 
             @forelse ($conversations as $conversation)
                 <a href="{{ route('messages.show', $conversation->partner) }}" class="conversation-row">
 
-                    <span class="expert-avatar" style="background-image:url('{{ asset('images/default-pfp.png') }}')"></span>
+                    <span class="expert-avatar" style="background-image:url('{{ asset($conversation->partner->role == 2 ? 'images/expert.png' : 'images/default-pfp.png') }}')"></span>
 
                     <div style="min-width:0;">
                         <p class="conversation-name">

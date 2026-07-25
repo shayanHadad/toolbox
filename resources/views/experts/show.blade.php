@@ -22,7 +22,7 @@
             <div class="t-card expert-profile-main">
 
                 <div class="expert-profile-head">
-                    <span class="expert-avatar expert-avatar-lg" style="background-image:url('{{ asset('images/default-pfp.png') }}')"></span>
+                    <span class="expert-avatar expert-avatar-lg" style="background-image:url('{{ asset('images/expert.png') }}')"></span>
 
                     <div>
                         <h1 class="expert-profile-name">{{ trim($expert->first_name . ' ' . $expert->last_name) }}</h1>

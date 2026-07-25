@@ -13,6 +13,9 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ExpertController;
+use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\Dashboard\CompanyDashboardController;
+
 
 
 
@@ -20,6 +23,9 @@ Route::get('/', [HomeController::class, 'fetchData'])->name('home');
 
 Route::get('/experts', [ExpertController::class, 'index'])->name('experts.index');
 Route::get('/experts/{expert}', [ExpertController::class, 'show'])->name('experts.show');
+
+Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 
 Route::get('/about', function () {
     return view('about');
@@ -56,6 +62,10 @@ Route::patch('/dashboard/expert/profile', [ExpertProfileController::class, 'upda
     ->middleware(['auth.custom', 'role:2'])
     ->name('expert.profile.update');
 
+Route::get('/dashboard/company', CompanyDashboardController::class)
+    ->middleware(['auth.custom', 'role:3'])
+    ->name('dashboard.company');
+
 
 Route::get('/login', [LoginController::class, 'show'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('login.store');
@@ -70,7 +80,7 @@ Route::get('/messages/{partner}', [MessageController::class, 'show'])
     ->name('messages.show');
 
 Route::post('/messages/{partner}', [MessageController::class, 'store'])
-    ->middleware(['auth.custom', 'role:1'])
+    ->middleware(['auth.custom', 'role:1,2'])
     ->name('messages.store');
 
 Route::get('/bookmarks', [BookmarkController::class, 'index'])

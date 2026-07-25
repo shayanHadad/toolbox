@@ -18,7 +18,7 @@
     {{-- Header --}}
     <div class="cd-header">
         <div class="cd-header-left">
-            <img src="{{ asset('images/default-pfp.png') }}" alt="{{ $user->first_name }}" class="cd-avatar">
+            <img src="{{ asset('images/expert.png') }}" alt="{{ $user->first_name }}" class="cd-avatar">
             <div>
                 <p class="cd-eyebrow">{{ $user->username }}</p>
                 <p class="cd-name">{{ $user->first_name }} {{ $user->last_name }}</p>
@@ -100,11 +100,11 @@
         <div class="cd-side">
             <div class="cd-card">
                 <div class="cd-card-head">
-                    <p class="cd-card-title">پیام‌ها</p>
-                    <a href="#" class="cd-link">مشاهده همه</a>
+                    <p class="cd-card-title">پیام‌های خوانده نشده</p>
+                    <a href="{{ route('messages.index') }}" class="cd-link">مشاهده همه</a>
                 </div>
                 @forelse ($recentMessages as $message)
-                <div class="cd-msg">
+                <a href="{{ route('messages.show', $message->sender) }}" class="cd-msg" style="display:block;text-decoration:none;">
                     <div class="cd-msg-top">
                         <p class="cd-msg-name">
                             {{ $message->sender->first_name ?? 'User' }}
@@ -114,7 +114,7 @@
                         </p>
                     </div>
                     <p class="cd-msg-text">{{ $message->message }}</p>
-                </div>
+                </a>
                 @empty
                 <p style="font-size:14px;color:var(--text-light);padding:8px 0;">هنوز مسیجی ندارید.</p>
                 @endforelse

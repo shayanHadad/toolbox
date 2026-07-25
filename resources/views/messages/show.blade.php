@@ -20,7 +20,7 @@
         <div class="t-card chat-wrap">
 
             <div class="chat-header">
-                <span class="expert-avatar" style="background-image:url('{{ asset('images/default-pfp.png') }}')"></span>
+                <span class="expert-avatar" style="background-image:url('{{ asset($partner->role == 2 ? 'images/expert.png' : 'images/default-pfp.png') }}')"></span>
 
                 <div>
                     <p class="chat-header-name">{{ trim($partner->first_name . ' ' . $partner->last_name) }}</p>
@@ -36,7 +36,14 @@
                     <div class="chat-bubble-row {{ $isMine ? 'chat-bubble-row-mine' : '' }}">
                         <div class="chat-bubble {{ $isMine ? 'chat-bubble-mine' : 'chat-bubble-theirs' }}">
                             <p class="chat-bubble-text">{{ $message->message }}</p>
-                            <span class="chat-bubble-time">{{ $message->created_at?->format('Y-m-d H:i') }}</span>
+                            <span class="chat-bubble-meta">
+                                <span class="chat-bubble-time">{{ $message->created_at?->format('Y-m-d H:i') }}</span>
+                                @if($isMine)
+                                    <span class="chat-tick {{ $message->status == 1 ? 'chat-tick-read' : '' }}" title="{{ $message->status == 1 ? 'دیده شده' : 'ارسال شده' }}">
+                                        {{ $message->status == 1 ? '✓✓' : '✓' }}
+                                    </span>
+                                @endif
+                            </span>
                         </div>
                     </div>
                 @empty
@@ -45,7 +52,7 @@
             </div>
 
             @auth
-                @if(auth()->user()->role == 1)
+                @if(in_array(auth()->user()->role, [1, 2]))
                     <form action="{{ route('messages.store', $partner) }}" method="POST" class="chat-form">
                         @csrf
                         <textarea

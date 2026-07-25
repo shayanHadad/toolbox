@@ -31,7 +31,7 @@
         <div class="footer-col">
             <h4>شرکت‌ها</h4>
             <ul>
-                <li><a href="{{ url('/componies') }}">شرکت‌ها</a></li>
+                <li><a href="{{ route('companies.index') }}">شرکت‌ها</a></li>
             </ul>
         </div>
 

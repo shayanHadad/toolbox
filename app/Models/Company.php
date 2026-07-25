@@ -14,6 +14,13 @@ class Company extends Model
         'founding_date',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'founding_date' => 'date',
+        ];
+    }
+
     public function admins()
     {
         return $this->hasMany(CompanyAdmin::class, 'companyID', 'companyID');

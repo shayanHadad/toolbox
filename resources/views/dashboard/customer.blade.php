@@ -99,7 +99,7 @@
                 </div>
                 @forelse ($bookmarkedProviders as $provider)
                 <div class="cd-row">
-                    <img src="{{ asset('images/default-pfp.png') }}" class="cd-row-avatar" alt="{{ $provider->first_name }}">
+                    <img src="{{ asset('images/expert.png') }}" class="cd-row-avatar" alt="{{ $provider->first_name }}">
                     <div style="min-width:0">
                         <p class="cd-row-name">{{ $provider->first_name }} {{ $provider->last_name }}</p>
                         <p class="cd-row-sub">{{ $provider->expertDetail->specialty ?? 'Provider' }}</p>
@@ -112,11 +112,11 @@
 
             <div class="cd-card">
                 <div class="cd-card-head">
-                    <p class="cd-card-title">پیام‌ها</p>
-                    <a href="#" class="cd-link">مشاهده همه</a>
+                    <p class="cd-card-title">پیام‌های خوانده نشده</p>
+                    <a href="{{ route('messages.index') }}" class="cd-link">مشاهده همه</a>
                 </div>
                 @forelse ($recentMessages as $message)
-                <div class="cd-msg">
+                <a href="{{ route('messages.show', $message->sender) }}" class="cd-msg" style="display:block;text-decoration:none;">
                     <div class="cd-msg-top">
                         <p class="cd-msg-name">
                             {{ $message->sender->first_name ?? 'User' }}
@@ -126,7 +126,7 @@
                         </p>
                     </div>
                     <p class="cd-msg-text">{{ $message->message }}</p>
-                </div>
+                </a>
                 @empty
                 <p style="font-size:14px;color:#6B7280;padding:8px 0;">هنوز پیامی ندارید.</p>
                 @endforelse
