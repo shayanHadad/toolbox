@@ -97,4 +97,8 @@ class User extends Authenticatable
             default    => 'home',
         };
     }
+    public function isCustomer()
+{
+    return $this->role == 1;
+}
 }

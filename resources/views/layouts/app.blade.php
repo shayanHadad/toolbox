@@ -7,6 +7,7 @@
     <title>@yield('title', 'Toolbox')</title>
 
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    @stack('styles')
 </head>
 
 <body>
@@ -40,6 +41,7 @@
     <button type="button" class="back-to-top" id="back-to-top" aria-label="برو به بالای صفحه">↑</button>
 
     <script src="{{ asset('js/app.js') }}"></script>
+    @stack('scripts')
 </body>
 
 </html>

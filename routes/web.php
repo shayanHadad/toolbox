@@ -12,10 +12,14 @@ use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\BookmarkController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ExpertController;
 
 
 
 Route::get('/', [HomeController::class, 'fetchData'])->name('home');
+
+Route::get('/experts', [ExpertController::class, 'index'])->name('experts.index');
+Route::get('/experts/{expert}', [ExpertController::class, 'show'])->name('experts.show');
 
 Route::get('/about', function () {
     return view('about');
@@ -61,6 +65,18 @@ Route::get('/messages', [MessageController::class, 'index'])
     ->middleware(['auth.custom'])
     ->name('messages.index');
 
+Route::get('/messages/{partner}', [MessageController::class, 'show'])
+    ->middleware(['auth.custom'])
+    ->name('messages.show');
+
+Route::post('/messages/{partner}', [MessageController::class, 'store'])
+    ->middleware(['auth.custom', 'role:1'])
+    ->name('messages.store');
+
 Route::get('/bookmarks', [BookmarkController::class, 'index'])
     ->middleware(['auth.custom'])
     ->name('bookmarks.index');
+
+Route::post('/experts/{expert}/bookmark', [BookmarkController::class, 'toggle'])
+    ->middleware(['auth.custom', 'role:1'])
+    ->name('bookmarks.toggle');

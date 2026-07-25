@@ -8,6 +8,8 @@ class Message extends Model
 {
     protected $primaryKey = 'messageID';
 
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'senderID',
         'receiverID',

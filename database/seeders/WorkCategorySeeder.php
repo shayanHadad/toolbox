@@ -13,7 +13,7 @@ class WorkCategorySeeder extends Seeder
         $categories = [
             ['category_name' => 'تمیزکاری',   'url' => 'cleaning'],
             ['category_name' => 'ساختمان',    'url' => 'building'],
-            ['category_name' => 'اسباب‌کشی و حمل بار', 'url' => 'moving'],
+            ['category_name' => 'اسباب‌کشی و باربری', 'url' => 'moving'],
             ['category_name' => 'خودرو',      'url' => 'car'],
             ['category_name' => 'تعمیرات اشیا', 'url' => 'objects-repair'],
             ['category_name' => 'سازمان‌ها', 'url' => 'organizations'],

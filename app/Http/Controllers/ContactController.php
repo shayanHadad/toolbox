@@ -64,7 +64,7 @@ class ContactController extends Controller
             'subject.max' => 'موضوع نمی‌تواند بیشتر از ۱۵۰ کاراکتر باشد.',
         ]);
         $payload = [
-            'name'    => $user->name,
+            'name' => trim($user->first_name . ' ' . $user->last_name),
             'email'   => $validated['email'],
             'subject' => $validated['subject'] ?? 'بدون موضوع',
             'message' => $validated['message'],

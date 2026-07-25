@@ -97,24 +97,6 @@
         </div>
 
         {{-- Sidebar --}}
-        <div class="cd-card">
-            <div class="cd-card-head">
-                <p class="cd-card-title">بوکمارک‌ها</p>
-                <a href="#" class="cd-link">مشاهده همه</a>
-            </div>
-            @forelse ($bookmarkedProviders as $provider)
-            <div class="cd-row">
-                <img src="{{ asset('images/default-pfp.png') }}" class="cd-row-avatar" alt="{{ $provider->first_name }}">
-                <div style="min-width:0">
-                    <p class="cd-row-name">{{ $provider->first_name }} {{ $provider->last_name }}</p>
-                    <p class="cd-row-sub">{{ $provider->expertDetail->specialty ?? 'Provider' }}</p>
-                </div>
-            </div>
-            @empty
-            <p style="font-size:14px;color:#6B7280;padding:8px 0;">هنوز بوکمارکی ندارید.</p>
-            @endforelse
-        </div>
-
         <div class="cd-side">
             <div class="cd-card">
                 <div class="cd-card-head">

@@ -103,7 +103,7 @@
         </li>
 
         <li>
-            <a href="{{ url('/componies') }}">
+            <a href="{{ url('/companies') }}">
                 🏢 شرکت‌ها
             </a>
         </li>

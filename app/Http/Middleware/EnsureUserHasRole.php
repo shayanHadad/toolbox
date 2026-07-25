@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureUserHasRole
 {
     /**
-     * Roles: 0 = admin | 1 = customer | 2 = expert | 4 = company
+     * Roles: 0 = admin | 1 = customer | 2 = expert | 3 = company
      *
      * Usage in routes: ->middleware('role:1')  or ->middleware('role:1,2')
      */
