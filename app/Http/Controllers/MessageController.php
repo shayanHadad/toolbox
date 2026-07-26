@@ -19,7 +19,7 @@ class MessageController extends Controller
         $partnerIds = Message::where('senderID', $user->userID)
             ->orWhere('receiverID', $user->userID)
             ->get(['senderID', 'receiverID'])
-            ->map(fn ($m) => $m->senderID == $user->userID ? $m->receiverID : $m->senderID)
+            ->map(fn($m) => $m->senderID == $user->userID ? $m->receiverID : $m->senderID)
             ->unique();
 
         $conversations = User::whereIn('userID', $partnerIds)
@@ -41,22 +41,16 @@ class MessageController extends Controller
                 ];
             })
             ->sort(function ($a, $b) {
-                // پیام‌های خوانده‌نشده همیشه بالاتر از بقیه
-                $aUnread = $a->unreadCount > 0 ? 1 : 0;
-                $bUnread = $b->unreadCount > 0 ? 1 : 0;
-
-                if ($aUnread !== $bUnread) {
-                    return $bUnread <=> $aUnread;
+                // ابتدا مکالمه‌هایی که پیام خوانده‌نشده دارند
+                if (($a->unreadCount > 0) !== ($b->unreadCount > 0)) {
+                    return $a->unreadCount > 0 ? -1 : 1;
                 }
 
-                // بعد از اون، به ترتیب تاریخ (جدیدترین اول)
-                $aTime = $a->lastMessage?->created_at;
-                $bTime = $b->lastMessage?->created_at;
-
-                return $bTime <=> $aTime;
+                // سپس جدیدترین پیام
+                return ($b->lastMessage?->messageID ?? 0)
+                    <=> ($a->lastMessage?->messageID ?? 0);
             })
             ->values();
-
         return view('messages.index', [
             'conversations' => $conversations,
         ]);
@@ -90,10 +84,11 @@ class MessageController extends Controller
     }
 
     /**
-     * ارسال پیام به یک متخصص (توسط مشتری) یا پاسخ به یک مشتری (توسط متخصص)،
-     * و ریدایرکت به صفحه‌ی چت مشترک.
-     * فقط برای کاربرهای لاگین‌کرده با role=1 (مشتری) یا role=2 (متخصص) مجاز است؛
-     * این محدودیت روی روت با میدلور role:1,2 اعمال شده.
+     * ارسال پیام به یک متخصص/شرکت (توسط مشتری) یا پاسخ به یک مشتری
+     * (توسط متخصص، ادمین شرکت یا مالک شرکت)، و ریدایرکت به صفحه‌ی چت مشترک.
+     * فقط برای کاربرهای لاگین‌کرده با role=1 (مشتری)، role=2 (متخصص)،
+     * role=3 (ادمین شرکت) یا role=4 (مالک شرکت) مجاز است؛ این محدودیت
+     * روی روت با میدلور role:1,2,3,4 اعمال شده.
      */
     public function store(Request $request, User $partner)
     {
@@ -102,10 +97,13 @@ class MessageController extends Controller
         abort_if($user->userID === $partner->userID, 404);
 
         if ($user->role == 1) {
-            // مشتری فقط می‌تونه به متخصص‌هایی که پروفایل تکمیل‌شده دارن پیام بده
-            abort_unless($partner->role == 2 && $partner->expertDetail, 404);
-        } elseif ($user->role == 2) {
-            // متخصص فقط می‌تونه به مشتری‌ها پاسخ بده
+            // مشتری می‌تونه به متخصص‌های با پروفایل تکمیل‌شده یا نماینده‌ی یه شرکت پیام بده
+            $isExpert = $partner->role == 2 && $partner->expertDetail;
+            $isCompanyRep = in_array((int) $partner->role, [3, 4], true) && $partner->companyAdmin?->company;
+
+            abort_unless($isExpert || $isCompanyRep, 404);
+        } elseif (in_array((int) $user->role, [2, 3, 4], true)) {
+            // متخصص، ادمین شرکت یا مالک شرکت فقط می‌تونه به مشتری‌ها پاسخ بده
             abort_unless($partner->role == 1, 404);
         } else {
             abort(403);

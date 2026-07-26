@@ -91,7 +91,7 @@
 
 {{-- 8. SLIDESHOW --}}
 <div class="section-head" style="margin-top: 100px;" id="images">
-    <span class=" hero-eyebrow"><span class="dot"></span> دسته بندی خدمات</span>
+    <span class=" hero-eyebrow"><span class="dot"></span>گالری عکس‌ها</span>
 </div>
 <div class="slideshow" id="toolbox-slideshow" style="margin-top: 10px;">
 
@@ -180,10 +180,15 @@
         <div class="cta-box">
             <h2>اگر سوالی داری میتونی با ما در ارتباط باشی.</h2>
             <div class="cta-links">
+                @guest
                 <a href="{{ url('/register') }}" class="btn btn-primary">ثبت‌نام </a>
                 <a href="{{ url('/login') }}" class="btn btn-outline">ورود </a>
-                <a href="{{ url('/about') }}" class="btn btn-outline">درباره ما</a>
                 <a href="{{ url('/contact') }}" class="btn btn-outline">تماس با ما</a>
+                @else
+                <a href="{{ url('/contact') }}" class="btn btn-primary">تماس با ما</a>
+                @endguest
+                <a href="{{ url('/about') }}" class="btn btn-outline">درباره ما</a>
+
             </div>
         </div>
     </div>

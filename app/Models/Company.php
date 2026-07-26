@@ -40,4 +40,30 @@ class Company extends Model
     {
         return $this->hasMany(Order::class, 'companyID', 'companyID');
     }
+
+    public function bookmarkedBy()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'company_bookmarks',
+            'companyID',
+            'customerID'
+        );
+    }
+
+    /**
+     * یه کاربر ادمین این شرکت که بشه بهش پیام داد (اولین ادمینِ در دسترس).
+     * اگه شرکت هنوز هیچ کاربر ادمینی نداشته باشه null برمی‌گرده.
+     */
+    public function contactUser(): ?User
+    {
+        foreach ($this->admins as $admin) {
+            $user = $admin->users->first();
+            if ($user) {
+                return $user;
+            }
+        }
+
+        return null;
+    }
 }

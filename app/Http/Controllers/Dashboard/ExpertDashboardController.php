@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
-use App\Models\Message;
+use App\Models\Order;
 use App\Models\WorkCategory;
 use Illuminate\Http\Request;
 
@@ -11,6 +11,8 @@ class ExpertDashboardController extends Controller
 {
     public function __invoke(Request $request)
     {
+        Order::autoFinishPastOrders();
+
         $user = $request->user();
 
         $orders = $user->providerOrders()
@@ -22,22 +24,16 @@ class ExpertDashboardController extends Controller
         $stats = [
             'active'    => $user->providerOrders()->whereIn('status', ['waiting', 'in_progress'])->count(),
             'completed' => $user->providerOrders()->where('status', 'finished')->count(),
-            'unread'    => $user->receivedMessages()->where('status', 1)->count(),
+            'requests'  => $user->providerOrders()->where('status', 'waiting')->count(),
+            'unread'    => $user->receivedMessages()->where('status', 0)->count(),
         ];
 
         $recentMessages = $user->receivedMessages()
+            ->where('status', 0) // فقط پیام‌های واقعاً خوانده‌نشده
             ->with('sender')
             ->orderByDesc('messageID')
             ->get()
             ->unique('senderID')
-            ->reject(function ($message) use ($user) {
-                // اگه بعد از این پیام، خودمون یه پیام جدیدتر براش فرستاده باشیم
-                // یعنی جوابش رو دادیم؛ دیگه توی این ویجت نشونش نده
-                return Message::where('senderID', $user->userID)
-                    ->where('receiverID', $message->senderID)
-                    ->where('messageID', '>', $message->messageID)
-                    ->exists();
-            })
             ->take(4)
             ->values();
 

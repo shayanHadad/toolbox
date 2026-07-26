@@ -26,10 +26,17 @@
             <span class="floating-btn-label">پیام‌ها</span>
         </a>
 
-        <a href="{{ route('bookmarks.index') }}" class="floating-btn" title="بوکمارک‌ها">
-            <img src="{{asset('images/bookmark-icon.png')}}" alt="بوکمارک‌ها" class="floating-btn-icon">
-            <span class="floating-btn-label">بوکمارک‌ها</span>
-        </a>
+        @if(auth()->user()->role == 1)
+            <a href="{{ route('bookmarks.index') }}" class="floating-btn" title="بوکمارک‌ها">
+                <img src="{{asset('images/bookmark-icon.png')}}" alt="بوکمارک‌ها" class="floating-btn-icon">
+                <span class="floating-btn-label">بوکمارک‌ها</span>
+            </a>
+
+        @endif
+            <a href="{{ route('orders.index') }}" class="floating-btn" title="سفارش‌ها">
+                <img src="{{asset('images/order-icon.jpg')}}" alt="سفارش‌ها" class="floating-btn-icon">
+                <span class="floating-btn-label">سفارش‌ها</span>
+            </a>
     </div>
     @endauth
 

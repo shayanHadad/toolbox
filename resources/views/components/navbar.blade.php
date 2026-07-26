@@ -25,6 +25,13 @@
             </li>
 
             <li>
+                <a href="{{ route('home') }}#work-categories">
+                    <i>📂</i>
+                    <span>دسته‌بندی‌ها</span>
+                </a>
+            </li>
+
+            <li>
                 <a href="{{ url('/experts') }}">
                     <i>🛠️</i>
                     <span>متخصص‌ها</span>
@@ -32,7 +39,7 @@
             </li>
 
             <li>
-                <a href="{{ route('companies.index') }}">
+                <a href="{{ url('/companies') }}">
                     <i>🏢</i>
                     <span>شرکت‌ها</span>
                 </a>
@@ -75,7 +82,7 @@
                 </button>
             </form>
             <a href="{{ route(auth()->user()->dashboardRoute())}}#profile-form" class="nav-profile-link" title="داشبورد کاربری">
-                <img src="{{ asset(auth()->user()->role == 2 ? 'images/expert.png' : 'images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
                 <span class="nav-profile-name">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
             </a>
             @endauth
@@ -97,13 +104,19 @@
         </li>
 
         <li>
+            <a href="{{ route('home') }}#work-categories">
+                📂 دسته‌بندی‌ها
+            </a>
+        </li>
+
+        <li>
             <a href="{{ url('/experts') }}">
                 🛠️ متخصص‌ها
             </a>
         </li>
 
         <li>
-            <a href="{{ route('companies.index') }}">
+            <a href="{{ url('/companies') }}">
                 🏢 شرکت‌ها
             </a>
         </li>
@@ -133,7 +146,7 @@
 
             @auth
             <a href="{{ route(auth()->user()->dashboardRoute())}}#profile-form" class="btn btn-outline">
-                <img src="{{ asset(auth()->user()->role == 2 ? 'images/expert.png' : 'images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img-mobile">
+                <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img-mobile">
                 داشبورد
             </a>
             <form method="POST" action="{{ route('logout') }}">

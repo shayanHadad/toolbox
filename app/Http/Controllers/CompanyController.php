@@ -16,7 +16,7 @@ class CompanyController extends Controller
         $categories = WorkCategory::orderBy('category_name')->get();
 
         $query = Company::query()
-            ->with('categories')
+            ->with(['categories', 'admins.users'])
             // میانگین امتیاز از روی سفارش‌های تمام‌شده‌ای که rating دارن
             ->withAvg(['orders as rating_avg' => function ($q) {
                 $q->whereNotNull('rating');
@@ -53,9 +53,19 @@ class CompanyController extends Controller
 
         $companies = $query->paginate(9)->withQueryString();
 
+        // آی‌دی شرکت‌هایی که کاربر لاگین‌کرده (در صورتی که مشتری باشه) بوکمارک کرده
+        $bookmarkedCompanyIds = [];
+        if (auth()->check() && auth()->user()->role == 1) {
+            $bookmarkedCompanyIds = auth()->user()
+                ->bookmarkedCompanies()
+                ->pluck('companies.companyID')
+                ->all();
+        }
+
         return view('companies.index', [
-            'companies'  => $companies,
-            'categories' => $categories,
+            'companies'            => $companies,
+            'categories'           => $categories,
+            'bookmarkedCompanyIds' => $bookmarkedCompanyIds,
         ]);
     }
 
@@ -64,7 +74,7 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
-        $company->load('categories');
+        $company->load(['categories', 'admins.users']);
         $company->loadAvg(['orders as rating_avg' => function ($q) {
             $q->whereNotNull('rating');
         }], 'rating');
@@ -77,9 +87,19 @@ class CompanyController extends Controller
             ->take(6)
             ->get();
 
+        $isBookmarked = false;
+        if (auth()->check() && auth()->user()->role == 1) {
+            $isBookmarked = auth()->user()
+                ->bookmarkedCompanies()
+                ->where('companies.companyID', $company->companyID)
+                ->exists();
+        }
+
         return view('companies.show', [
-            'company' => $company,
-            'reviews' => $reviews,
+            'company'      => $company,
+            'reviews'      => $reviews,
+            'isBookmarked' => $isBookmarked,
+            'contactUser'  => $company->contactUser(),
         ]);
     }
 }

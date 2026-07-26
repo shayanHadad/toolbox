@@ -24,7 +24,9 @@
                 <p class="cd-name">{{ $user->first_name }} {{ $user->last_name }}</p>
             </div>
         </div>
-        <a href="#profile-form" class="cd-btn"> ویرایش اطلاعات پروفایل </a>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="#profile-form" class="cd-btn" style="background:var(--surface); color:var(--indigo); border:1px solid var(--border);"> ویرایش اطلاعات پروفایل </a>
+        </div>
     </div>
 
     {{-- Stats --}}
@@ -37,6 +39,10 @@
             <p class="cd-stat-label">سفارش‌های به اتمام رسیده</p>
             <p class="cd-stat-value" style="color:var(--amber)">{{ $stats['completed'] }}</p>
         </div>
+        <a href="{{ route('orders.index', ['status' => 'waiting']) }}" class="cd-stat" style="text-decoration:none;">
+            <p class="cd-stat-label">درخواست‌های در انتظار</p>
+            <p class="cd-stat-value" style="color:var(--indigo)">{{ $stats['requests'] }}</p>
+        </a>
         <div class="cd-stat">
             <p class="cd-stat-label">پیام‌های خوانده نشده</p>
             <p class="cd-stat-value" style="color:var(--danger)">{{ $stats['unread'] }}</p>
@@ -49,37 +55,31 @@
         <div class="cd-card">
             <div class="cd-card-head">
                 <p class="cd-card-title">سفارش‌های اخیر</p>
-                <a href="#" class="cd-link">مشاهده همه</a>
+                <a href="{{ route('orders.index') }}" class="cd-link">مشاهده همه</a>
             </div>
 
             @php
             $stageKeys = ['waiting', 'in_progress', 'finished'];
-            $stageLabels = ['waiting' => 'Waiting', 'in_progress' => 'In progress', 'finished' => 'Finished'];
             @endphp
 
             @forelse ($orders as $order)
             @php
             $currentIndex = array_search($order->status, $stageKeys);
-            $badgeClass = match($order->status) {
-            'waiting' => 'cd-badge-waiting',
-            'in_progress' => 'cd-badge-progress',
-            'finished' => 'cd-badge-done',
-            default => 'cd-badge-waiting',
-            };
             @endphp
             <div class="cd-order">
                 <div class="cd-order-top">
                     <div>
-                        <p class="cd-order-name">{{ $order->customer->first_name ?? 'Customer' }} {{ $order->customer->last_name ?? '' }}</p>
+                        <p class="cd-order-name">{{ $order->customer->first_name ?? 'مشتری' }} {{ $order->customer->last_name ?? '' }}</p>
                         <p class="cd-order-meta">
-                            Order #{{ $order->orderID }}
+                            سفارش #{{ $order->orderID }}
                             @if ($order->order_date)
-                            · {{ \Carbon\Carbon::parse($order->order_date)->format('M j, Y') }}
+                            · {{ \Carbon\Carbon::parse($order->order_date)->format('Y/m/d') }}
                             @endif
                         </p>
                     </div>
-                    <span class="cd-badge {{ $badgeClass }}">{{ $stageLabels[$order->status] ?? ucfirst($order->status) }}</span>
+                    <span class="cd-badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span>
                 </div>
+                @if (!in_array($order->status, ['rejected', 'cancelled']))
                 <div class="cd-stepper">
                     @foreach ($stageKeys as $i => $key)
                     <div class="cd-node {{ $i < $currentIndex ? 'done' : ($i === $currentIndex ? 'current' : '') }}"></div>
@@ -88,6 +88,7 @@
                     @endif
                     @endforeach
                 </div>
+                @endif
             </div>
             @empty
             <div class="cd-empty">
@@ -108,7 +109,7 @@
                     <div class="cd-msg-top">
                         <p class="cd-msg-name">
                             {{ $message->sender->first_name ?? 'User' }}
-                            @if ($message->status == 1)
+                            @if ($message->status == 0)
                             <span class="cd-msg-unread"></span>
                             @endif
                         </p>
@@ -232,6 +233,43 @@
 
             <button type="submit" class="cd-btn" style="margin-top:20px;border:none;cursor:pointer;">ذخیره تغییرات</button>
         </form>
+    </div>
+
+    {{-- Danger zone: delete account --}}
+    <div class="cd-card cd-card-danger" style="margin-top:24px;">
+        <div class="cd-card-head">
+            <p class="cd-card-title" style="color:var(--danger);">حذف حساب کاربری</p>
+        </div>
+
+        @if (session('error'))
+        <div class="cd-alert cd-alert-danger">{{ session('error') }}</div>
+        @endif
+
+        <p class="cd-danger-text">
+            با حذف حساب، اطلاعات پروفایل و پروفایل تخصصی‌ات برای همیشه پاک می‌شه و این کار قابل بازگشت نیست.
+        </p>
+
+        <details class="cd-danger-details" @if(session('deleteAccountOpen')) open @endif>
+            <summary class="cd-danger-summary">حذف حساب کاربری</summary>
+
+            <form action="{{ route('account.destroy') }}" method="POST" class="cd-danger-form"
+                onsubmit="return confirm('مطمئنی می‌خوای حساب کاربری‌ات رو برای همیشه حذف کنی؟ این کار قابل بازگشت نیست.');">
+                @csrf
+                @method('DELETE')
+
+                <div class="cd-field">
+                    <label class="cd-label" for="delete_password">برای تأیید، رمز عبورت رو وارد کن</label>
+                    <input type="password" id="delete_password" name="password" class="cd-input" required>
+                    @error('password')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <button type="submit" class="cd-btn cd-btn-danger" style="margin-top:12px;border:none;cursor:pointer;">
+                    حذف همیشگی حساب
+                </button>
+            </form>
+        </details>
     </div>
 
 </div>

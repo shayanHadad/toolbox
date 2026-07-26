@@ -3,21 +3,21 @@
 @section('title', 'شرکت‌ها | جعبه‌ابزار')
 
 @push('styles')
-<link rel="stylesheet" href="{{ asset('css/companies.css') }}">
+<link rel="stylesheet" href="{{ asset('css/experts.css') }}">
 @endpush
 
 @section('content')
 
 {{-- 1. HERO + SEARCH BAR --}}
-<section class="hero companies-hero">
+<section class="hero experts-hero">
     <div class="container hero-content">
 
         <span class="hero-eyebrow"><span class="dot"></span> شرکت‌ها</span>
 
-        <h1>یه <em>شرکت مطمئن</em> برای هر کاری پیدا کن</h1>
+        <h1>یه <em>شرکت خدماتی مطمئن</em> برای هر پروژه‌ای پیدا کن</h1>
 
         <p>
-            توی جعبه‌ابزار می‌تونی بین شرکت‌های حوزه‌های مختلف بگردی، پروفایل و امتیازشون رو ببینی
+            توی جعبه‌ابزار می‌تونی بین شرکت‌های خدماتی حوزه‌های مختلف بگردی، پروفایل و امتیازشون رو ببینی
             و مناسب‌ترین گزینه رو برای کارت انتخاب کنی.
         </p>
 
@@ -33,7 +33,7 @@
                 type="text"
                 name="q"
                 value="{{ request('q') }}"
-                placeholder="اسم شرکت، تخصص یا یه کلمه‌ی کلیدی رو بنویس...">
+                placeholder="اسم شرکت یا یه کلمه‌ی کلیدی رو بنویس...">
 
             <button type="submit">جستجو</button>
         </form>
@@ -42,10 +42,10 @@
 </section>
 
 {{-- 2. FILTERS + RESULTS --}}
-<section class="categories companies-section">
+<section class="categories experts-section">
     <div class="container">
 
-        <form method="GET" action="{{ route('companies.index') }}" class="companies-filter-bar">
+        <form method="GET" action="{{ route('companies.index') }}" class="experts-filter-bar">
 
             @if(request()->filled('q'))
                 <input type="hidden" name="q" value="{{ request('q') }}">
@@ -81,59 +81,84 @@
         </form>
 
         @if (session('success'))
-            <div class="companies-flash companies-flash-success">{{ session('success') }}</div>
+            <div class="experts-flash experts-flash-success">{{ session('success') }}</div>
         @endif
 
-        <p class="companies-count">
+        <p class="experts-count">
             {{ $companies->total() }} شرکت پیدا شد
             @if(request()->filled('q'))
                 برای «{{ request('q') }}»
             @endif
         </p>
 
-        <div class="company-grid">
+        <div class="expert-grid">
 
             @forelse($companies as $company)
-                <div class="company-card">
+                <div class="expert-card">
 
-                    <div class="company-card-top">
-                        <span class="company-avatar" style="background-image:url('{{ asset('images/company.png') }}')"></span>
+                    <div class="expert-card-top">
+                        <span class="expert-avatar" style="background-image:url('{{ asset('images/company.png') }}')"></span>
 
-                        @if($company->categories->isNotEmpty())
-                            <div class="company-badges">
-                                @foreach($company->categories->take(2) as $cat)
-                                    <span class="company-badge">{{ $cat->category_name }}</span>
-                                @endforeach
-                            </div>
-                        @endif
+                        <div class="company-badges">
+                            @forelse($company->categories->take(2) as $cat)
+                                <span class="expert-badge">{{ $cat->category_name }}</span>
+                            @empty
+                                {{-- بدون دسته‌بندی --}}
+                            @endforelse
+                            @if($company->categories->count() > 2)
+                                <span class="expert-badge">+{{ $company->categories->count() - 2 }}</span>
+                            @endif
+                        </div>
+
+                        @auth
+                            @if(auth()->user()->role == 1)
+                                <form action="{{ route('bookmarks.company.toggle', $company) }}" method="POST" class="btn-icon-form">
+                                    @csrf
+                                    @php $isBookmarked = in_array($company->companyID, $bookmarkedCompanyIds); @endphp
+                                    <button
+                                        type="submit"
+                                        class="btn-icon {{ $isBookmarked ? 'btn-icon-active' : '' }}"
+                                        title="{{ $isBookmarked ? 'حذف از بوکمارک‌ها' : 'بوکمارک کردن این شرکت' }}">
+                                        <img src="{{ asset('images/bookmark-icon.png') }}" alt="بوکمارک">
+                                    </button>
+                                </form>
+                            @endif
+                        @endauth
                     </div>
 
-                    <h3 class="company-name">{{ $company->name }}</h3>
+                    <h3 class="expert-name">{{ $company->name }}</h3>
 
-                    <div class="company-rating">
+                    <div class="expert-rating">
                         @for($i = 0; $i < 5; $i++)
                             {{ $i < round($company->rating_avg ?? 0) ? '★' : '☆' }}
                         @endfor
-                        <span class="company-rating-num">
+                        <span class="expert-rating-num">
                             {{ $company->rating_avg ? number_format($company->rating_avg, 1) : 'بدون امتیاز' }}
                         </span>
                     </div>
 
-                    <p class="company-desc">
+                    <p class="expert-desc">
                         {{ \Illuminate\Support\Str::limit($company->descriptions ?: 'این شرکت هنوز توضیحی برای پروفایلش ثبت نکرده.', 110) }}
                     </p>
 
-                    <div class="company-card-footer">
-                        <span class="company-orders">{{ $company->orders_count }} سفارش تمام‌شده</span>
+                    <div class="expert-card-footer">
+                        <span class="expert-orders">{{ $company->orders_count }} سفارش تمام‌شده</span>
 
-                        <div class="company-card-actions">
+                        <div class="expert-card-actions">
+                            @auth
+                                @if(auth()->user()->role == 1 && $company->contactUser())
+                                    <a href="{{ route('messages.show', $company->contactUser()) }}" class="btn btn-outline btn-sm">
+                                        ارسال پیام
+                                    </a>
+                                @endif
+                            @endauth
                             <a href="{{ route('companies.show', $company) }}" class="btn btn-outline btn-sm">مشاهده پروفایل</a>
                         </div>
                     </div>
 
                 </div>
             @empty
-                <div class="companies-empty">
+                <div class="experts-empty">
                     <p>متأسفانه با این فیلترها شرکتی پیدا نشد.</p>
                     <a href="{{ route('companies.index') }}" class="btn btn-outline btn-sm">پاک کردن فیلترها</a>
                 </div>
@@ -142,7 +167,7 @@
         </div>
 
         @if($companies->hasPages())
-            <div class="companies-pagination">
+            <div class="experts-pagination">
                 {{ $companies->onEachSide(1)->links('components.pagination') }}
             </div>
         @endif

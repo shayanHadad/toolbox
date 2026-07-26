@@ -71,52 +71,6 @@
                     @endauth
                 </div>
 
-                @auth
-                    @if(auth()->user()->role == 1)
-                        <div class="order-box">
-                            @if (session('success'))
-                                <div class="experts-flash experts-flash-success">{{ session('success') }}</div>
-                            @endif
-
-                            <details class="order-details" @if($errors->has('details') || $errors->has('preferred_date')) open @endif>
-                                <summary class="order-summary">📝 ثبت سفارش برای این شرکت</summary>
-
-                                <form action="{{ route('orders.company.store', $company) }}" method="POST" class="order-form">
-                                    @csrf
-
-                                    <label class="order-label" for="order_details">توضیح بده چه خدماتی نیاز داری</label>
-                                    <textarea
-                                        id="order_details"
-                                        name="details"
-                                        class="order-input"
-                                        rows="4"
-                                        maxlength="2000"
-                                        placeholder="مثلاً: نوع خدمات، زمان مورد نظر، آدرس تقریبی و..."
-                                        required>{{ old('details') }}</textarea>
-                                    @error('details')
-                                        <p class="order-error">{{ $message }}</p>
-                                    @enderror
-
-                                    <label class="order-label" for="order_preferred_date">تاریخ مدنظرت برای انجام کار</label>
-                                    <input
-                                        type="date"
-                                        id="order_preferred_date"
-                                        name="preferred_date"
-                                        class="order-input"
-                                        min="{{ now()->format('Y-m-d') }}"
-                                        value="{{ old('preferred_date') }}"
-                                        required>
-                                    @error('preferred_date')
-                                        <p class="order-error">{{ $message }}</p>
-                                    @enderror
-
-                                    <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-start;">ثبت سفارش</button>
-                                </form>
-                            </details>
-                        </div>
-                    @endif
-                @endauth
-
                 <h2 class="expert-section-title">درباره‌ی شرکت</h2>
                 <p class="expert-desc-full">
                     {{ $company->descriptions ?: 'این شرکت هنوز توضیحی برای پروفایلش ثبت نکرده.' }}

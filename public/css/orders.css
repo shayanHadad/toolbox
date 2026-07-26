@@ -1,0 +1,263 @@
+.ord-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+    font-family: var(--font-body, "Vazirmatn", sans-serif);
+    color: var(--text, #1F2937);
+}
+
+.ord-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.ord-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink, #101828);
+    margin: 0;
+}
+
+.ord-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 18px;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #E2E6ED);
+    border-radius: var(--radius, 16px);
+    box-shadow: var(--shadow-sm, 0 1px 3px rgba(16,24,40,.06));
+    padding: 18px 22px;
+    margin-bottom: 24px;
+}
+
+.ord-filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ord-filter-field label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-light, #66707F);
+}
+
+.ord-filter-field select {
+    min-width: 190px;
+    padding: 11px 16px;
+    border: 1px solid var(--border, #E2E6ED);
+    border-radius: var(--radius-sm, 10px);
+    background: var(--paper, #F3F5F8);
+    font-family: var(--font-body, "Vazirmatn", sans-serif);
+    font-size: 14.5px;
+    color: var(--text, #1F2937);
+    cursor: pointer;
+}
+
+.ord-filter-field select:focus {
+    outline: 2px solid var(--indigo-light, #3D6FB4);
+    outline-offset: 2px;
+}
+
+.ord-filter-clear {
+    margin-inline-start: auto;
+    align-self: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--danger, #D6455B);
+    white-space: nowrap;
+}
+
+.ord-filter-clear:hover {
+    text-decoration: underline;
+}
+
+.ord-back {
+    font-size: 14px;
+    color: var(--indigo, #1E3A5F);
+    text-decoration: none;
+    font-weight: 600;
+}
+.ord-back:hover { text-decoration: underline; }
+
+.ord-alert {
+    padding: 12px 16px;
+    border-radius: var(--radius-sm, 10px);
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+.ord-alert-success { background: rgba(31,157,85,.12); color: var(--success, #1F9D55); }
+.ord-alert-danger { background: rgba(214,69,91,.12); color: var(--danger, #D6455B); }
+
+.ord-card {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #E2E6ED);
+    border-radius: var(--radius, 16px);
+    padding: 22px;
+    box-shadow: var(--shadow-sm, 0 2px 10px rgba(16,24,40,.05));
+    margin-bottom: 18px;
+}
+
+.ord-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.ord-order-id {
+    font-size: 13px;
+    color: var(--text-light, #66707F);
+    margin: 0 0 4px;
+}
+
+.ord-partner {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink, #101828);
+    margin: 0;
+}
+
+.cd-badge { font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.cd-badge-progress { background: rgba(31,157,85,.12); color: var(--success, #1F9D55); }
+.cd-badge-waiting { background: rgba(227,162,52,.15); color: var(--amber-dark, #C9871A); }
+.cd-badge-done { background: rgba(31,157,85,.12); color: var(--success, #1F9D55); }
+.cd-badge-rejected { background: rgba(214,69,91,.12); color: var(--danger, #D6455B); }
+
+.ord-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 0 0 14px;
+    padding: 14px;
+    background: var(--paper, #F3F5F8);
+    border-radius: var(--radius-sm, 10px);
+}
+@media (min-width: 560px) {
+    .ord-meta-grid { grid-template-columns: 1fr 1fr; }
+}
+.ord-meta-grid dt {
+    font-size: 12px;
+    color: var(--text-light, #66707F);
+    margin: 0 0 2px;
+}
+.ord-meta-grid dd {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink, #101828);
+    margin: 0;
+}
+
+.ord-details, .ord-review {
+    margin-bottom: 14px;
+}
+.ord-details-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink, #101828);
+    margin: 0 0 6px;
+}
+.ord-details-text {
+    font-size: 14px;
+    color: var(--text, #1F2937);
+    line-height: 1.9;
+    white-space: pre-line;
+    margin: 0;
+}
+
+.ord-rejected-note {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--danger, #D6455B);
+    background: rgba(214,69,91,.08);
+    border: 1px solid rgba(214,69,91,.3);
+    border-radius: var(--radius-sm, 10px);
+    padding: 10px 14px;
+}
+
+.ord-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+.ord-actions form { margin: 0; }
+.ord-actions button { border: none; cursor: pointer; }
+
+.ord-empty {
+    text-align: center;
+    padding: 50px 10px;
+    color: var(--text-light, #66707F);
+}
+
+/* review details toggle + form (reuses the same naming pattern as experts.css) */
+.ord-review-details {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px dashed var(--border, #E2E6ED);
+}
+
+.order-summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    list-style: none;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--indigo, #1E3A5F);
+}
+.order-summary::-webkit-details-marker { display: none; }
+
+.order-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.order-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink, #101828);
+}
+
+.order-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border, #E2E6ED);
+    border-radius: var(--radius-sm, 10px);
+    font-family: var(--font-body, "Vazirmatn", sans-serif);
+    background: var(--paper, #F3F5F8);
+    resize: vertical;
+}
+
+.order-error {
+    font-size: 12px;
+    color: var(--danger, #D6455B);
+    margin: 0;
+}
+
+.ord-rating-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.ord-rating-star {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border: 1px solid var(--border, #E2E6ED);
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    background: var(--surface, #fff);
+}
+.ord-rating-star input { accent-color: var(--amber, #E3A234); }

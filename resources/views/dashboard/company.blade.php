@@ -4,27 +4,211 @@
 
 @section('content')
 
-<section class="categories">
-    <div class="container" style="display:flex; justify-content:center; padding-top:60px; padding-bottom:60px;">
+<link rel="stylesheet" href="{{ asset('css/dashboard/expert.css') }}">
 
-        <div class="t-card" style="max-width:520px; width:100%; text-align:center; padding:48px 32px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+@if (! $company)
 
-            <span style="font-size:42px;">🚧</span>
+    <section class="categories">
+        <div class="container" style="display:flex; justify-content:center; padding-top:60px; padding-bottom:60px;">
+            <div class="t-card" style="max-width:520px; width:100%; text-align:center; padding:48px 32px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+                <span style="font-size:42px;">🏢</span>
+                <h1 style="font-size:20px; font-weight:800; color:var(--ink);">
+                    حساب کاربری‌ات به هیچ شرکتی وصل نیست
+                </h1>
+                <p style="font-size:14.5px; line-height:1.9; color:var(--text-light);">
+                    سلام {{ $user->first_name ?? 'همراه عزیز' }}؛ به نظر می‌رسه اکانتت هنوز به‌عنوان نماینده‌ی هیچ شرکتی ثبت نشده.
+                    برای وصل‌شدن به یک شرکت با پشتیبانی تماس بگیر.
+                </p>
+                <a href="{{ url('/') }}" class="btn btn-primary btn-sm">بازگشت به صفحه‌ی اصلی</a>
+            </div>
+        </div>
+    </section>
 
-            <h1 style="font-size:20px; font-weight:800; color:var(--ink);">
-                پنل کاربری شرکت‌ها در حال ساخت است
-            </h1>
+@else
 
-            <p style="font-size:14.5px; line-height:1.9; color:var(--text-light);">
-                سلام {{ $user->first_name ?? 'همراه عزیز' }}؛ این بخش از سایت هنوز طراحی و پیاده‌سازی نشده و
-                به‌زودی در دسترس قرار می‌گیره. ممنون از صبوری‌ات 🙏
-            </p>
+<div class="cd-wrap">
 
-            <a href="{{ url('/') }}" class="btn btn-primary btn-sm">بازگشت به صفحه‌ی اصلی</a>
+    {{-- Header --}}
+    <div class="cd-header">
+        <div class="cd-header-left">
+            <img src="{{ asset('images/expert.png') }}" alt="{{ $user->first_name }}" class="cd-avatar">
+            <div>
+                <p class="cd-eyebrow">{{ $user->username }} · {{ $user->role == 4 ? 'مالک' : 'ادمین' }} {{ $company->name }}</p>
+                <p class="cd-name">{{ $user->first_name }} {{ $user->last_name }}</p>
+            </div>
+        </div>
+    </div>
+
+    @if (session('success'))
+    <div class="cd-alert cd-alert-success" style="margin-top:16px;">{{ session('success') }}</div>
+    @endif
+
+    {{-- Stats --}}
+    <div class="cd-stats">
+        <div class="cd-stat">
+            <p class="cd-stat-label">سفارش‌های ناتمام</p>
+            <p class="cd-stat-value" style="color:var(--success)">{{ $stats['active'] }}</p>
+        </div>
+        <div class="cd-stat">
+            <p class="cd-stat-label">سفارش‌های به اتمام رسیده</p>
+            <p class="cd-stat-value" style="color:var(--amber)">{{ $stats['completed'] }}</p>
+        </div>
+        <a href="{{ route('orders.index', ['status' => 'waiting']) }}" class="cd-stat" style="text-decoration:none;">
+            <p class="cd-stat-label">درخواست‌های در انتظار</p>
+            <p class="cd-stat-value" style="color:var(--indigo)">{{ $stats['requests'] }}</p>
+        </a>
+        <div class="cd-stat">
+            <p class="cd-stat-label">پیام‌های خوانده نشده</p>
+            <p class="cd-stat-value" style="color:var(--danger)">{{ $stats['unread'] }}</p>
+        </div>
+    </div>
+
+    <div class="cd-grid">
+
+        {{-- Recent orders --}}
+        <div class="cd-card">
+            <div class="cd-card-head">
+                <p class="cd-card-title">سفارش‌های اخیر</p>
+                <a href="{{ route('orders.index') }}" class="cd-link">مشاهده همه</a>
+            </div>
+
+            @php
+            $stageKeys = ['waiting', 'in_progress', 'finished'];
+            @endphp
+
+            @forelse ($orders as $order)
+            @php
+            $currentIndex = array_search($order->status, $stageKeys);
+            @endphp
+            <div class="cd-order">
+                <div class="cd-order-top">
+                    <div>
+                        <p class="cd-order-name">{{ $order->customer->first_name ?? 'مشتری' }} {{ $order->customer->last_name ?? '' }}</p>
+                        <p class="cd-order-meta">
+                            سفارش #{{ $order->orderID }}
+                            @if ($order->order_date)
+                            · {{ \Carbon\Carbon::parse($order->order_date)->format('Y/m/d') }}
+                            @endif
+                        </p>
+                    </div>
+                    <span class="cd-badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span>
+                </div>
+
+                @if (!in_array($order->status, ['rejected', 'cancelled']))
+                <div class="cd-stepper">
+                    @foreach ($stageKeys as $i => $key)
+                    <div class="cd-node {{ $i < $currentIndex ? 'done' : ($i === $currentIndex ? 'current' : '') }}"></div>
+                    @if (!$loop->last)
+                    <div class="cd-track {{ $i < $currentIndex ? 'done' : '' }}"></div>
+                    @endif
+                    @endforeach
+                </div>
+                @endif
+            </div>
+            @empty
+            <div class="cd-empty">
+                <p>هنوز سفارشی برای این شرکت ثبت نشده</p>
+            </div>
+            @endforelse
+        </div>
+
+        {{-- Sidebar --}}
+        <div class="cd-side">
+
+            <div class="cd-card">
+                <div class="cd-card-head">
+                    <p class="cd-card-title">پیام‌های اخیر</p>
+                    <a href="{{ route('messages.index') }}" class="cd-link">مشاهده همه</a>
+                </div>
+
+                @forelse ($recentMessages as $message)
+                <a href="{{ route('messages.show', $message->sender) }}" class="cd-msg" style="display:block;text-decoration:none;">
+                    <div class="cd-msg-top">
+                        <p class="cd-msg-name">
+                            {{ $message->sender->first_name ?? 'کاربر' }} {{ $message->sender->last_name ?? '' }}
+                            @if ($message->status == 0)
+                            <span class="cd-msg-unread"></span>
+                            @endif
+                        </p>
+                    </div>
+                    <p class="cd-msg-text">{{ \Illuminate\Support\Str::limit($message->message, 60) }}</p>
+                </a>
+                @empty
+                <div class="cd-empty">
+                    <p>پیامی موجود نیست</p>
+                </div>
+                @endforelse
+            </div>
 
         </div>
 
     </div>
-</section>
+
+    @if ($user->role == 4)
+    {{-- Company profile edit form: only the company owner (role=4) can edit these --}}
+    <div class="cd-card" id="profile-form" style="margin-top:24px;">
+        <div class="cd-card-head">
+            <p class="cd-card-title">ویرایش اطلاعات شرکت</p>
+        </div>
+
+        <form action="{{ route('company.profile.update') }}" method="POST">
+            @csrf
+            @method('PATCH')
+
+            <div class="cd-form-grid">
+
+                <div class="cd-field">
+                    <label class="cd-label" for="name">نام شرکت</label>
+                    <input type="text" id="name" name="name" class="cd-input"
+                        value="{{ old('name', $company->name) }}">
+                    @error('name')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="cd-field">
+                    <label class="cd-label" for="founding_date">تاریخ تأسیس</label>
+                    <input type="date" id="founding_date" name="founding_date" class="cd-input"
+                        value="{{ old('founding_date', $company->founding_date?->format('Y-m-d')) }}">
+                    @error('founding_date')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="cd-field cd-field-full">
+                    <label class="cd-label" for="descriptions">توضیحات</label>
+                    <textarea id="descriptions" name="descriptions" class="cd-input" rows="4">{{ old('descriptions', $company->descriptions) }}</textarea>
+                    @error('descriptions')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="cd-field cd-field-full">
+                    <label class="cd-label">دسته‌بندی‌های فعالیت</label>
+                    <div class="cd-checkbox-group">
+                        @php $selectedCategoryIds = old('categories', $company->categories->pluck('categoryID')->all()); @endphp
+                        @foreach ($categories as $category)
+                        <label class="cd-checkbox">
+                            <input type="checkbox" name="categories[]" value="{{ $category->categoryID }}"
+                                @checked(in_array($category->categoryID, $selectedCategoryIds))>
+                            {{ $category->category_name }}
+                        </label>
+                        @endforeach
+                    </div>
+                    @error('categories')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+            </div>
+
+            <button type="submit" class="cd-btn" style="margin-top:20px;border:none;cursor:pointer;">ذخیره تغییرات</button>
+        </form>
+    </div>
+    @endif
+
+</div>
+
+@endif
 
 @endsection

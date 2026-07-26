@@ -14,7 +14,7 @@
         <a href="{{ route('messages.index') }}" class="expert-back-link">→ بازگشت به پیام‌ها</a>
 
         @if (session('success'))
-            <div class="experts-flash experts-flash-success">{{ session('success') }}</div>
+        <div class="experts-flash experts-flash-success">{{ session('success') }}</div>
         @endif
 
         <div class="t-card chat-wrap">
@@ -25,51 +25,51 @@
                 <div>
                     <p class="chat-header-name">{{ trim($partner->first_name . ' ' . $partner->last_name) }}</p>
                     @if($partner->role == 2 && $partner->expertDetail)
-                        <a href="{{ route('experts.show', $partner) }}" class="chat-header-link">مشاهده پروفایل متخصص</a>
+                    <a href="{{ route('experts.show', $partner) }}" class="chat-header-link">مشاهده پروفایل متخصص</a>
                     @endif
                 </div>
             </div>
 
             <div class="chat-messages">
                 @forelse ($messages as $message)
-                    @php $isMine = $message->senderID == auth()->id(); @endphp
-                    <div class="chat-bubble-row {{ $isMine ? 'chat-bubble-row-mine' : '' }}">
-                        <div class="chat-bubble {{ $isMine ? 'chat-bubble-mine' : 'chat-bubble-theirs' }}">
-                            <p class="chat-bubble-text">{{ $message->message }}</p>
-                            <span class="chat-bubble-meta">
-                                <span class="chat-bubble-time">{{ $message->created_at?->format('Y-m-d H:i') }}</span>
-                                @if($isMine)
-                                    <span class="chat-tick {{ $message->status == 1 ? 'chat-tick-read' : '' }}" title="{{ $message->status == 1 ? 'دیده شده' : 'ارسال شده' }}">
-                                        {{ $message->status == 1 ? '✓✓' : '✓' }}
-                                    </span>
-                                @endif
+                @php $isMine = $message->senderID == auth()->id(); @endphp
+                <div class="chat-bubble-row {{ $isMine ? 'chat-bubble-row-mine' : '' }}">
+                    <div class="chat-bubble {{ $isMine ? 'chat-bubble-mine' : 'chat-bubble-theirs' }}">
+                        <p class="chat-bubble-text">{{ $message->message }}</p>
+                        <span class="chat-bubble-meta">
+                            <span class="chat-bubble-time">{{ $message->created_at?->format('Y-m-d H:i') }}</span>
+                            @if($isMine)
+                            <span class="chat-tick {{ $message->status == 1 ? 'chat-tick-read' : '' }}" title="{{ $message->status == 1 ? 'دیده شده' : 'ارسال شده' }}">
+                                {{ $message->status == 1 ? '✓✓' : '✓' }}
                             </span>
-                        </div>
+                            @endif
+                        </span>
                     </div>
+                </div>
                 @empty
-                    <p class="t-text" style="text-align:center;">هنوز پیامی بین شما رد و بدل نشده.</p>
+                <p class="t-text" style="text-align:center;">هنوز پیامی بین شما رد و بدل نشده.</p>
                 @endforelse
             </div>
 
             @auth
-                @if(in_array(auth()->user()->role, [1, 2]))
-                    <form action="{{ route('messages.store', $partner) }}" method="POST" class="chat-form">
-                        @csrf
-                        <textarea
-                            name="message"
-                            class="chat-textarea"
-                            rows="3"
-                            maxlength="2000"
-                            placeholder="پیامت رو اینجا بنویس..."
-                            required></textarea>
+            @if(in_array(auth()->user()->role, [1, 2, 3, 4]))
+            <form action="{{ route('messages.store', $partner) }}" method="POST" class="chat-form">
+                @csrf
+                <textarea
+                    name="message"
+                    class="chat-textarea"
+                    rows="3"
+                    maxlength="2000"
+                    placeholder="پیامت رو اینجا بنویس..."
+                    required></textarea>
 
-                        @error('message')
-                            <p class="cd-error">{{ $message }}</p>
-                        @enderror
+                @error('message')
+                <p class="cd-error">{{ $message }}</p>
+                @enderror
 
-                        <button type="submit" class="btn btn-primary btn-sm">ارسال پیام</button>
-                    </form>
-                @endif
+                <button type="submit" class="btn btn-primary btn-sm">ارسال پیام</button>
+            </form>
+            @endif
             @endauth
 
         </div>

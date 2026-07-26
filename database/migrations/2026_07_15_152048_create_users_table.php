@@ -20,6 +20,7 @@ return new class extends Migration
             // 1 Customer
             // 2 Expert
             // 3 Company Admin
+            // 4 Company (مالک شرکت؛ همون دسترسی رول ۳ + ادیت پروفایل شرکت)
             $table->tinyInteger('role');
 
             $table->date('register_date');

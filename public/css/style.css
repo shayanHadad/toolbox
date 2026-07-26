@@ -1627,11 +1627,18 @@ main.page-bg > *{
     gap:10px;
   }
   .floating-btn{
-    padding:6px 14px 6px 6px;
-    font-size:13px;
+    width:44px;
+    height:44px;
+    padding:0;
+    justify-content:center;
+    border-radius:50%;
   }
   .floating-btn-icon{
-    width:30px;
-    height:30px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+  }
+  .floating-btn-label{
+    display:none;
   }
 }

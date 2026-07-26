@@ -32,6 +32,7 @@
     .cd-badge-progress { background: rgba(31,157,85,.12); color: var(--success, #1F9D55); }
     .cd-badge-waiting { background: rgba(227,162,52,.15); color: var(--amber-dark, #C9871A); }
     .cd-badge-done { background: rgba(31,157,85,.12); color: var(--success, #1F9D55); }
+    .cd-badge-rejected { background: rgba(214,69,91,.12); color: var(--danger, #D6455B); }
 
     .cd-stepper { display: flex; align-items: center; }
     .cd-node { width: 10px; height: 10px; border-radius: 50%; background: var(--border, #E2E6ED); flex-shrink: 0; }
@@ -84,6 +85,10 @@
     textarea.cd-input { resize: vertical; min-height: 90px; line-height: 1.7; font-family: inherit; }
     select.cd-input { cursor: pointer; }
 
+    .cd-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px 18px; padding: 10px 12px; border: 1px solid var(--border, #E2E6ED); border-radius: var(--radius-sm, 10px); background: var(--paper, #F3F5F8); }
+    .cd-checkbox { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--text, #1F2937); cursor: pointer; }
+    .cd-checkbox input { accent-color: var(--indigo-light, #3D6FB4); cursor: pointer; }
+
     .cd-warning {
         display: flex;
         align-items: center;
@@ -101,3 +106,28 @@
 
     /* keeps the anchor target below the sticky navbar (76px) when jumped to */
     #profile-form { scroll-margin-top: 96px; }
+
+    /* Danger zone (delete account) */
+    .cd-alert-danger { background: rgba(214,69,91,.12); color: var(--danger, #D6455B); }
+    .cd-card-danger { border-color: rgba(214,69,91,.35); }
+    .cd-danger-text { font-size: 14px; color: var(--text-light, #66707F); line-height: 1.9; margin: 0 0 16px; }
+    .cd-danger-summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px 20px;
+        border-radius: 50px;
+        border: 2px solid var(--danger, #D6455B);
+        color: var(--danger, #D6455B);
+        font-weight: 700;
+        font-size: 14px;
+        cursor: pointer;
+        list-style: none;
+        width: fit-content;
+        transition: var(--transition, .25s ease);
+    }
+    .cd-danger-summary::-webkit-details-marker { display: none; }
+    .cd-danger-summary:hover { background: rgba(214,69,91,.08); }
+    .cd-danger-form { margin-top: 16px; max-width: 360px; }
+    .cd-btn-danger { background: var(--danger, #D6455B) !important; }
+    .cd-btn-danger:hover { background: #B93A4E !important; }
