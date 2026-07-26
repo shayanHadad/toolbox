@@ -149,7 +149,7 @@
 
                 <div class="t-card">
                     <div class="t-name info-title">ایمیل</div>
-                    <p class="t-text">info@toolbox.example</p>
+                    <p class="t-text">shayan.hadad2004@gmail.com</p>
                 </div>
 
                 <div class="t-card">
@@ -159,7 +159,7 @@
 
                 <div class="t-card">
                     <div class="t-name info-title">آدرس</div>
-                    <p class="t-text">تهران، خیابان ولیعصر، برج تولباکس</p>
+                    <p class="t-text">دزفول، خیابان جندی شاپور، برج تولباکس</p>
                 </div>
 
             </div>

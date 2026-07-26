@@ -34,7 +34,7 @@
         <div class="t-grid">
             <div class="t-card">
                 <div class="t-quote-mark">”</div>
-                <p class="t-text">بیش از ۱۰ هزار پروژه با موفقیت روی پلتفرم ما تکمیل شده و کارفرماها و فریلنسرها هر روز بهم متصل می‌شن.</p>
+                <p class="t-text">بیش از ۱۰ هزار پروژه با موفقیت روی پلتفرم ما تکمیل شده و کارفرماها و متخصص‌ها هر روز بهم متصل می‌شن.</p>
                 <div class="t-person">
                     <div>
                         <div class="t-name">+۱۰,۰۰۰</div>
@@ -45,11 +45,11 @@
 
             <div class="t-card">
                 <div class="t-quote-mark">”</div>
-                <p class="t-text">شبکه‌ای رو به رشد از فریلنسرهای متخصص در طراحی، برنامه‌نویسی، محتوا و بازاریابی داریم.</p>
+                <p class="t-text">شبکه‌ای رو به رشد از متخصص‌ها و شرکت‌های ارائه خدمات داریم.</p>
                 <div class="t-person">
                     <div>
                         <div class="t-name">+۲,۵۰۰</div>
-                        <div class="t-role">فریلنسر فعال</div>
+                        <div class="t-role">متخصص فعال</div>
                     </div>
                 </div>
             </div>
@@ -72,10 +72,11 @@
 <section class="cta-bar">
     <div class="container">
         <div class="cta-box">
-            <h2>آماده‌ای شروع کنی؟</h2>
-            <p>همین حالا پروژه‌ت رو ثبت کن یا به‌عنوان فریلنسر عضو تولباکس شو.</p>
+            <h2>اگر سوالی داری میتونی با ما در ارتباط باشی.</h2>
             <div class="cta-links">
+                @guest
                 <a href="{{ route('register') }}" class="btn btn-primary">ثبت‌نام رایگان</a>
+                @endguest
                 <a href="{{ route('contact') }}" class="btn btn-outline">تماس با ما</a>
             </div>
         </div>

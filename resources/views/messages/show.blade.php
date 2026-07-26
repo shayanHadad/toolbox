@@ -11,7 +11,7 @@
 <section class="categories experts-section">
     <div class="container">
 
-        <a href="{{ route('messages.index') }}" class="expert-back-link">→ بازگشت به پیام‌ها</a>
+        <a href="{{ route('messages.index') }}" class="expert-back-link">→ رفتن به پیام‌ها</a>
 
         @if (session('success'))
         <div class="experts-flash experts-flash-success">{{ session('success') }}</div>

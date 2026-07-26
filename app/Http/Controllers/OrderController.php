@@ -119,6 +119,9 @@ class OrderController extends Controller
                 $query->where('status', $status);
             }
 
+            // سفارش‌های در انتظار تأیید همیشه بالاتر از بقیه نشون داده بشن
+            $query->orderByRaw("CASE WHEN status = 'waiting' THEN 0 ELSE 1 END");
+
             match ($sort) {
                 'oldest' => $query->orderBy('orderID'),
                 'status' => $query->orderByRaw(
