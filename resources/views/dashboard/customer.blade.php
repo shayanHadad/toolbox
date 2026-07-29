@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Toolbox')
+@section('title', 'پنل کاربری | جعبه‌ابزار')
 
 @section('content')
 
@@ -53,8 +53,8 @@
             @php
             $currentIndex = array_search($order->status, $stageKeys);
             $partnerName = $order->provider
-                ? trim(($order->provider->first_name ?? '') . ' ' . ($order->provider->last_name ?? ''))
-                : ($order->company->name ?? 'ارائه‌دهنده');
+            ? trim(($order->provider->first_name ?? '') . ' ' . ($order->provider->last_name ?? ''))
+            : ($order->company->name ?? 'ارائه‌دهنده');
             @endphp
             <div class="cd-order">
                 <div class="cd-order-top">
@@ -93,7 +93,7 @@
             <div class="cd-card">
                 <div class="cd-card-head">
                     <p class="cd-card-title">بوکمارک‌ها</p>
-                    <a href="#" class="cd-link">مشاهده همه</a>
+                    <a href="{{ route('bookmarks.index') }}" class="cd-link">مشاهده همه</a>
                 </div>
                 @forelse ($bookmarkedProviders as $provider)
                 <div class="cd-row">

@@ -64,10 +64,11 @@
                     <button type="submit" class="btn btn-outline btn-sm" style="color:var(--danger); border-color:var(--danger);">رد کردن</button>
                 </form>
             </div>
-
+            @if(auth()->user()->role != 3)
             <a href="{{ route('messages.show', $order->customer) }}" class="btn btn-outline btn-sm">
                 شروع گفتگو با مشتری
             </a>
+            @endif
         </div>
 
     </div>

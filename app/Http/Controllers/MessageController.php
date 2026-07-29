@@ -336,9 +336,15 @@ class MessageController extends Controller
             'companyID'  => $companyID,
         ]);
 
-        return redirect()
-            ->route('messages.show', $partner->userID)
-            ->with('success', 'پیامت با موفقیت ارسال شد.');
+     if ((int) $user->role === 3) {
+    return redirect()
+        ->route('messages.index')
+        ->with('success', 'پیامت با موفقیت ارسال شد.');
+}
+
+return redirect()
+    ->route('messages.show', $partner->userID)
+    ->with('success', 'پیامت با موفقیت ارسال شد.');
     }
 
     /**

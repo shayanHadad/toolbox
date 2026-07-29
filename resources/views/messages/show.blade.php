@@ -1,11 +1,7 @@
 @extends('layouts.app')
 
 @php
-    // فقط برای مشتری (role=1) که داره با یه شرکت چت می‌کنه، هدر/تایتل
-    // اسمِ شرکت رو نشون بده؛ برای نماینده/مالک شرکت (role=3،4) که داره
-    // با یه مشتری چت می‌کنه، همون اسمِ مشتری (partner) درسته و نباید
-    // عوض بشه.
-    $showAsCompany = $company && (int) auth()->user()->role === 1;
+$showAsCompany = $company && (int) auth()->user()->role === 1;
 @endphp
 
 @section('title', 'گفتگو با ' . ($showAsCompany ? $company->name : trim($partner->first_name . ' ' . $partner->last_name)) . ' | جعبه‌ابزار')

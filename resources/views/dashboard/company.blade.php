@@ -8,21 +8,21 @@
 
 @if (! $company)
 
-    <section class="categories">
-        <div class="container" style="display:flex; justify-content:center; padding-top:60px; padding-bottom:60px;">
-            <div class="t-card" style="max-width:520px; width:100%; text-align:center; padding:48px 32px; display:flex; flex-direction:column; align-items:center; gap:16px;">
-                <span style="font-size:42px;">🏢</span>
-                <h1 style="font-size:20px; font-weight:800; color:var(--ink);">
-                    حساب کاربری‌ات به هیچ شرکتی وصل نیست
-                </h1>
-                <p style="font-size:14.5px; line-height:1.9; color:var(--text-light);">
-                    سلام {{ $user->first_name ?? 'همراه عزیز' }}؛ به نظر می‌رسه اکانتت هنوز به‌عنوان نماینده‌ی هیچ شرکتی ثبت نشده.
-                    برای وصل‌شدن به یک شرکت با پشتیبانی تماس بگیر.
-                </p>
-                <a href="{{ url('/') }}" class="btn btn-primary btn-sm">بازگشت به صفحه‌ی اصلی</a>
-            </div>
+<section class="categories">
+    <div class="container" style="display:flex; justify-content:center; padding-top:60px; padding-bottom:60px;">
+        <div class="t-card" style="max-width:520px; width:100%; text-align:center; padding:48px 32px; display:flex; flex-direction:column; align-items:center; gap:16px;">
+            <span style="font-size:42px;">🏢</span>
+            <h1 style="font-size:20px; font-weight:800; color:var(--ink);">
+                حساب کاربری‌ات به هیچ شرکتی وصل نیست
+            </h1>
+            <p style="font-size:14.5px; line-height:1.9; color:var(--text-light);">
+                سلام {{ $user->first_name ?? 'همراه عزیز' }}؛ به نظر می‌رسه اکانتت هنوز به‌عنوان نماینده‌ی هیچ شرکتی ثبت نشده.
+                برای وصل‌شدن به یک شرکت با پشتیبانی تماس بگیر.
+            </p>
+            <a href="{{ url('/') }}" class="btn btn-primary btn-sm">بازگشت به صفحه‌ی اصلی</a>
         </div>
-    </section>
+    </div>
+</section>
 
 @else
 
@@ -37,7 +37,18 @@
                 <p class="cd-name">{{ $user->first_name }} {{ $user->last_name }}</p>
             </div>
         </div>
+        @if ($user->role == 4)
+        <div class="cd-header-right" style="display:flex; gap:12px; margin-inline-start:auto;">
+            <a href="#profile-form" class="cd-btn" style="text-decoration:none;">
+                ویرایش اطلاعات شرکت
+            </a>
+
+            <a href="#admins" class="cd-btn" style="text-decoration:none;">
+                لیست ادمین‌ها
+            </a>
+        </div>
     </div>
+    @endif
 
     @if (session('success'))
     <div class="cd-alert cd-alert-success" style="margin-top:16px;">{{ session('success') }}</div>
