@@ -32,11 +32,11 @@
             <label for="ord-status">دسته‌بندی وضعیت</label>
             <select name="status" id="ord-status" onchange="this.form.submit()">
                 <option value="">همه‌ی سفارش‌ها</option>
-                <option value="waiting" @selected($status==='waiting' )>در انتظار تأیید</option>
-                <option value="in_progress" @selected($status==='in_progress' )>در حال انجام</option>
-                <option value="finished" @selected($status==='finished' )>تمام شده</option>
-                <option value="rejected" @selected($status==='rejected' )>رد شده</option>
-                <option value="cancelled" @selected($status==='cancelled' )>لغو شده</option>
+                <option value="{{ \App\Models\Order::STATUS_WAITING }}" @selected($status===\App\Models\Order::STATUS_WAITING)>در انتظار تأیید</option>
+                <option value="{{ \App\Models\Order::STATUS_IN_PROGRESS }}" @selected($status===\App\Models\Order::STATUS_IN_PROGRESS)>در حال انجام</option>
+                <option value="{{ \App\Models\Order::STATUS_FINISHED }}" @selected($status===\App\Models\Order::STATUS_FINISHED)>تمام شده</option>
+                <option value="{{ \App\Models\Order::STATUS_REJECTED }}" @selected($status===\App\Models\Order::STATUS_REJECTED)>رد شده</option>
+                <option value="{{ \App\Models\Order::STATUS_CANCELLED }}" @selected($status===\App\Models\Order::STATUS_CANCELLED)>لغو شده</option>
             </select>
         </div>
 
@@ -107,7 +107,7 @@
         </div>
         @endif
 
-        @if ($order->status === 'finished' && $order->comment)
+        @if ($order->status === \App\Models\Order::STATUS_FINISHED && $order->comment)
         <div class="ord-review">
             <p class="ord-details-label">
                 نظرِ ثبت‌شده
@@ -119,7 +119,7 @@
         </div>
         @endif
 
-        @if ($order->status === 'rejected')
+        @if ($order->status === \App\Models\Order::STATUS_REJECTED)
         <div class="ord-rejected-note">
             @if ($user->role == 1)
             این سفارش رد شده و انجام نمی‌شه.
@@ -129,7 +129,7 @@
         </div>
         @endif
 
-        @if ($order->status === 'cancelled')
+        @if ($order->status === \App\Models\Order::STATUS_CANCELLED)
         <div class="ord-rejected-note">
             @if ($user->role == 1)
             این سفارش رو خودت لغو کردی.
@@ -139,7 +139,7 @@
         </div>
         @endif
 
-        @if ($user->role == 1 && $order->status === 'waiting')
+        @if ($user->role == 1 && $order->status === \App\Models\Order::STATUS_WAITING)
         <div class="ord-actions">
             <form action="{{ route('orders.cancel', $order) }}" method="POST"
                 onsubmit="return confirm('مطمئنی می‌خوای این سفارش رو لغو کنی؟');">
@@ -149,7 +149,7 @@
         </div>
         @endif
 
-        @if (in_array($user->role, [2, 3, 4]) && $order->status === 'waiting')
+        @if (in_array($user->role, [2, 3, 4]) && $order->status === \App\Models\Order::STATUS_WAITING)
         <div class="ord-actions" style="justify-content: space-between;">
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
                 <form action="{{ route('orders.approve', $order) }}" method="POST">

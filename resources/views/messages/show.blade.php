@@ -1,6 +1,14 @@
 @extends('layouts.app')
 
-@section('title', 'گفتگو با ' . trim($partner->first_name . ' ' . $partner->last_name) . ' | جعبه‌ابزار')
+@php
+    // فقط برای مشتری (role=1) که داره با یه شرکت چت می‌کنه، هدر/تایتل
+    // اسمِ شرکت رو نشون بده؛ برای نماینده/مالک شرکت (role=3،4) که داره
+    // با یه مشتری چت می‌کنه، همون اسمِ مشتری (partner) درسته و نباید
+    // عوض بشه.
+    $showAsCompany = $company && (int) auth()->user()->role === 1;
+@endphp
+
+@section('title', 'گفتگو با ' . ($showAsCompany ? $company->name : trim($partner->first_name . ' ' . $partner->last_name)) . ' | جعبه‌ابزار')
 
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/experts.css') }}">
@@ -20,11 +28,11 @@
         <div class="t-card chat-wrap">
 
             <div class="chat-header">
-                <span class="expert-avatar" style="background-image:url('{{ asset($partner->role == 2 ? 'images/expert.png' : 'images/default-pfp.png') }}')"></span>
+                <span class="expert-avatar" style="background-image:url('{{ asset($showAsCompany ? 'images/company.png' : ($partner->role == 2 ? 'images/expert.png' : 'images/default-pfp.png')) }}')"></span>
 
                 <div>
-                    <p class="chat-header-name">{{ trim($partner->first_name . ' ' . $partner->last_name) }}</p>
-                    @if($partner->role == 2 && $partner->expertDetail)
+                    <p class="chat-header-name">{{ $showAsCompany ? $company->name : trim($partner->first_name . ' ' . $partner->last_name) }}</p>
+                    @if(!$showAsCompany && $partner->role == 2 && $partner->expertDetail)
                     <a href="{{ route('experts.show', $partner) }}" class="chat-header-link">مشاهده پروفایل متخصص</a>
                     @endif
                 </div>

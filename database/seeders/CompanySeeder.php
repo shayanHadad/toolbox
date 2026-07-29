@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Company;
 use App\Models\CompanyAdmin;
+use Database\Seeders\Support\SeedContent;
 use Illuminate\Database\Seeder;
 use Faker\Factory as FakerFactory;
 
@@ -13,22 +14,27 @@ class CompanySeeder extends Seeder
     {
         $faker = FakerFactory::create('fa_IR');
 
-        for ($i = 0; $i < 6; $i++) {
+        foreach (SeedContent::companies() as $data) {
             $company = Company::create([
-                'name'          => $faker->company(),
-                'descriptions'  => $faker->realText(180),
+                'name'          => $data['name'],
+                'descriptions'  => $data['descriptions'],
                 'founding_date' => $faker->dateTimeBetween('-20 years', '-1 years')->format('Y-m-d'),
             ]);
 
-            // هر شرکت ۱ یا ۲ ادمین داره
-            $adminCount = rand(1, 2);
-            for ($j = 0; $j < $adminCount; $j++) {
-                CompanyAdmin::create([
-                    'companyID' => $company->companyID,
-                ]);
+            // هر شرکت حتماً یک ردیف company_admins برای مالک (role=4) داره.
+            // ترتیب ساخت مهمه: اولین ردیفِ هر شرکت توسط UserSeeder به‌عنوان
+            // «مالک» در نظر گرفته می‌شه.
+            CompanyAdmin::create(['companyID' => $company->companyID]);
+
+            // بیشتر شرکت‌ها حداقل یک ادمین اضافه هم دارن؛ بعضی‌ها حتی دوتا،
+            // شبیه یه تیم واقعی که چندنفره پاسخگوی مشتری‌هاست.
+            $extraAdmins = $faker->randomElement([0, 1, 1, 1, 2]);
+
+            for ($i = 0; $i < $extraAdmins; $i++) {
+                CompanyAdmin::create(['companyID' => $company->companyID]);
             }
         }
 
-        $this->command->info('شرکت‌ها و ادمین‌های شرکت ساخته شدند.');
+        $this->command->info('شرکت‌ها و ردیف‌های ادمین شرکت ساخته شدند.');
     }
 }

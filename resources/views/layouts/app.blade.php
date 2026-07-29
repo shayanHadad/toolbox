@@ -7,6 +7,7 @@
     <title>@yield('title', 'Toolbox')</title>
 
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
     @stack('styles')
 </head>
 
@@ -14,13 +15,13 @@
     @include('components.navbar')
     @auth
 
-
     <div class="floating-actions">
         <a href="{{ route(auth()->user()->dashboardRoute())}}" class="floating-btn" title="داشبورد">
             <img src="{{asset('images/dashboard-icon.png')}}" alt="داشبورد" class="floating-btn-icon">
             <span class="floating-btn-label">داشبورد</span>
         </a>
 
+        @if(auth()->user()->role != 0)
         <a href="{{ route('messages.index') }}" class="floating-btn" title="پیام‌ها">
             <img src="{{asset('images/message-icon.png')}}" alt="پیام‌ها" class="floating-btn-icon">
             <span class="floating-btn-label">پیام‌ها</span>
@@ -40,6 +41,7 @@
             <img src="{{asset('images/order-icon.jpg')}}" alt="سفارش‌ها" class="floating-btn-icon">
             <span class="floating-btn-label">درخواست‌ها</span>
         </a>
+        @endif
         @endif
     </div>
     @endauth

@@ -53,7 +53,7 @@
             <p class="cd-stat-label">سفارش‌های به اتمام رسیده</p>
             <p class="cd-stat-value" style="color:var(--amber)">{{ $stats['completed'] }}</p>
         </div>
-        <a href="{{ route('orders.index', ['status' => 'waiting']) }}" class="cd-stat" style="text-decoration:none;">
+        <a href="{{ route('orders.index', ['status' => \App\Models\Order::STATUS_WAITING]) }}" class="cd-stat" style="text-decoration:none;">
             <p class="cd-stat-label">درخواست‌های در انتظار</p>
             <p class="cd-stat-value" style="color:var(--indigo)">{{ $stats['requests'] }}</p>
         </a>
@@ -73,7 +73,7 @@
             </div>
 
             @php
-            $stageKeys = ['waiting', 'in_progress', 'finished'];
+            $stageKeys = [\App\Models\Order::STATUS_WAITING, \App\Models\Order::STATUS_IN_PROGRESS, \App\Models\Order::STATUS_FINISHED];
             @endphp
 
             @forelse ($orders as $order)
@@ -94,7 +94,7 @@
                     <span class="cd-badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span>
                 </div>
 
-                @if (!in_array($order->status, ['rejected', 'cancelled']))
+                @if (!in_array($order->status, [\App\Models\Order::STATUS_REJECTED, \App\Models\Order::STATUS_CANCELLED]))
                 <div class="cd-stepper">
                     @foreach ($stageKeys as $i => $key)
                     <div class="cd-node {{ $i < $currentIndex ? 'done' : ($i === $currentIndex ? 'current' : '') }}"></div>
@@ -203,6 +203,166 @@
             </div>
 
             <button type="submit" class="cd-btn" style="margin-top:20px;border:none;cursor:pointer;">ذخیره تغییرات</button>
+        </form>
+    </div>
+
+    {{-- Company admins management: only the company owner (role=4) can add/see admins --}}
+    <div class="cd-card" id="admins" style="margin-top:24px;">
+        <div class="cd-card-head">
+            <p class="cd-card-title">ادمین‌های شرکت</p>
+        </div>
+
+        @forelse ($companyAdmins as $admin)
+        <details class="cd-order cd-admin-item">
+            <summary class="cd-admin-summary">
+                <div>
+                    <p class="cd-order-name">{{ $admin->first_name }} {{ $admin->last_name }}</p>
+                    <p class="cd-order-meta">{{ $admin->username }} · {{ $admin->contact_number }}</p>
+                </div>
+            </summary>
+
+            <form action="{{ route('company.admins.update', $admin) }}" method="POST" style="margin-top:16px;">
+                @csrf
+                @method('PUT')
+
+                <div class="cd-form-grid">
+
+                    <div class="cd-field">
+                        <label class="cd-label" for="admin_username_{{ $admin->userID }}">نام کاربری</label>
+                        <input type="text" id="admin_username_{{ $admin->userID }}" name="username" class="cd-input"
+                            value="{{ old('username', $admin->username) }}">
+                        @error('username')
+                        <p class="cd-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="cd-field">
+                        <label class="cd-label" for="admin_contact_number_{{ $admin->userID }}">شماره موبایل</label>
+                        <input type="text" id="admin_contact_number_{{ $admin->userID }}" name="contact_number" class="cd-input"
+                            value="{{ old('contact_number', $admin->contact_number) }}">
+                        @error('contact_number')
+                        <p class="cd-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="cd-field">
+                        <label class="cd-label" for="admin_first_name_{{ $admin->userID }}">نام</label>
+                        <input type="text" id="admin_first_name_{{ $admin->userID }}" name="first_name" class="cd-input"
+                            value="{{ old('first_name', $admin->first_name) }}">
+                        @error('first_name')
+                        <p class="cd-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="cd-field">
+                        <label class="cd-label" for="admin_last_name_{{ $admin->userID }}">نام خانوادگی</label>
+                        <input type="text" id="admin_last_name_{{ $admin->userID }}" name="last_name" class="cd-input"
+                            value="{{ old('last_name', $admin->last_name) }}">
+                        @error('last_name')
+                        <p class="cd-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="cd-field">
+                        <label class="cd-label" for="admin_date_of_birth_{{ $admin->userID }}">تاریخ تولد</label>
+                        <input type="date" id="admin_date_of_birth_{{ $admin->userID }}" name="date_of_birth" class="cd-input"
+                            value="{{ old('date_of_birth', optional($admin->date_of_birth)->format('Y-m-d')) }}">
+                        @error('date_of_birth')
+                        <p class="cd-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="cd-field">
+                        <label class="cd-label" for="admin_password_{{ $admin->userID }}">رمز عبور جدید (اختیاری)</label>
+                        <input type="password" id="admin_password_{{ $admin->userID }}" name="password" class="cd-input"
+                            placeholder="خالی بذارید یعنی بدون تغییر">
+                        @error('password')
+                        <p class="cd-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                </div>
+
+                <div style="display:flex;gap:12px;margin-top:16px;">
+                    <button type="submit" class="cd-btn" style="border:none;cursor:pointer;">ذخیره تغییرات</button>
+                </div>
+            </form>
+
+            <form action="{{ route('company.admins.destroy', $admin) }}" method="POST"
+                style="margin-top:12px;"
+                onsubmit="return confirm('مطمئنی می‌خوای این ادمین رو حذف کنی؟');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="cd-btn" style="border:none;cursor:pointer;background:#dc2626;">حذف این ادمین</button>
+            </form>
+        </details>
+        @empty
+        <div class="cd-empty">
+            <p>هنوز ادمینی برای این شرکت ثبت نشده</p>
+        </div>
+        @endforelse
+
+        <form action="{{ route('company.admins.store') }}" method="POST" style="margin-top:20px;">
+            @csrf
+
+            <div class="cd-form-grid">
+
+                <div class="cd-field">
+                    <label class="cd-label" for="admin_username">نام کاربری</label>
+                    <input type="text" id="admin_username" name="username" class="cd-input"
+                        value="{{ old('username') }}">
+                    @error('username')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="cd-field">
+                    <label class="cd-label" for="admin_contact_number">شماره موبایل</label>
+                    <input type="text" id="admin_contact_number" name="contact_number" class="cd-input"
+                        value="{{ old('contact_number') }}">
+                    @error('contact_number')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="cd-field">
+                    <label class="cd-label" for="admin_first_name">نام</label>
+                    <input type="text" id="admin_first_name" name="first_name" class="cd-input"
+                        value="{{ old('first_name') }}">
+                    @error('first_name')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="cd-field">
+                    <label class="cd-label" for="admin_last_name">نام خانوادگی</label>
+                    <input type="text" id="admin_last_name" name="last_name" class="cd-input"
+                        value="{{ old('last_name') }}">
+                    @error('last_name')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="cd-field">
+                    <label class="cd-label" for="admin_date_of_birth">تاریخ تولد</label>
+                    <input type="date" id="admin_date_of_birth" name="date_of_birth" class="cd-input"
+                        value="{{ old('date_of_birth') }}">
+                    @error('date_of_birth')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="cd-field">
+                    <label class="cd-label" for="admin_password">رمز عبور</label>
+                    <input type="password" id="admin_password" name="password" class="cd-input">
+                    @error('password')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
+                </div>
+
+            </div>
+
+            <button type="submit" class="cd-btn" style="margin-top:20px;border:none;cursor:pointer;">افزودن ادمین جدید</button>
         </form>
     </div>
     @endif

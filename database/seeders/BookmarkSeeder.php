@@ -22,7 +22,7 @@ class BookmarkSeeder extends Seeder
         $created = 0;
         $attempts = 0;
 
-        while ($created < 25 && $attempts < 500) {
+        while ($created < 70 && $attempts < 1000) {
             $attempts++;
 
             $customerId = $customers->random();

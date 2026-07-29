@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    use Notifiable;
+    use Notifiable, SoftDeletes;
 
     protected $table = 'users';
 
@@ -141,5 +142,25 @@ class User extends Authenticatable
             3, 4 => 'dashboard.company',
             default    => 'home',
         };
+    }
+
+    /**
+     * حذفِ (نرمِ) این کاربر، بعد از مخدوش‌کردنِ username و contact_number.
+     *
+     * چون این دو ستون یونیک‌ان و ردیفِ soft-deleted فیزیکاً توی جدول
+     * باقی می‌مونه، بدون این کار، کسیِ دیگه دیگه هیچ‌وقت نمی‌تونه همون
+     * نام‌کاربری یا شماره تماس رو دوباره ثبت‌نام کنه. با اضافه‌کردنِ
+     * پسوندِ «_deleted_{userID}»، مقدار اصلی آزاد می‌شه برای استفاده‌ی
+     * بعدی، ولی خودِ رکورد (و رابطه‌اش با پیام‌ها/سفارش‌های قدیمی) دست‌
+     * نخورده می‌مونه.
+     */
+    public function anonymizeAndDelete(): void
+    {
+        $this->forceFill([
+            'username'       => $this->username . '_deleted_' . $this->userID,
+            'contact_number' => $this->contact_number . '_deleted_' . $this->userID,
+        ])->save();
+
+        $this->delete();
     }
 }

@@ -22,9 +22,9 @@ class ExpertDashboardController extends Controller
             ->get();
 
         $stats = [
-            'active'    => $user->providerOrders()->whereIn('status', ['waiting', 'in_progress'])->count(),
-            'completed' => $user->providerOrders()->where('status', 'finished')->count(),
-            'requests'  => $user->providerOrders()->where('status', 'waiting')->count(),
+            'active'    => $user->providerOrders()->whereIn('status', [Order::STATUS_WAITING, Order::STATUS_IN_PROGRESS])->count(),
+            'completed' => $user->providerOrders()->where('status', Order::STATUS_FINISHED)->count(),
+            'requests'  => $user->providerOrders()->where('status', Order::STATUS_WAITING)->count(),
             'unread'    => $user->receivedMessages()->where('status', 0)->count(),
         ];
 

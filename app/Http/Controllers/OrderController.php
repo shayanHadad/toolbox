@@ -99,6 +99,7 @@ class OrderController extends Controller
         $user = $request->user();
 
         $status = $request->query('status');
+        $status = is_numeric($status) ? (int) $status : null;
         $sort   = $request->query('sort', 'newest');
 
         if (! in_array($status, self::STATUSES, true)) {
@@ -108,7 +109,7 @@ class OrderController extends Controller
         $query = match (true) {
             (int) $user->role === 1 => $user->customerOrders()->with(['provider', 'company']),
             (int) $user->role === 2 => $user->providerOrders()->with('customer'),
-            in_array((int) $user->role, [3, 4], true) => $this->companyOf($user)?->orders()->with('customer'),
+            in_array((int) $user->role, [3, 4], true) => $this->companyOf($user)?->ordersVisibleTo($user)->with('customer'),
             default => null,
         };
 
@@ -120,20 +121,14 @@ class OrderController extends Controller
             }
 
             // سفارش‌های در انتظار تأیید همیشه بالاتر از بقیه نشون داده بشن
-            $query->orderByRaw("CASE WHEN status = 'waiting' THEN 0 ELSE 1 END");
+            $query->orderByRaw('CASE WHEN status = ? THEN 0 ELSE 1 END', [Order::STATUS_WAITING]);
 
             match ($sort) {
                 'oldest' => $query->orderBy('orderID'),
-                'status' => $query->orderByRaw(
-                    "CASE status
-                        WHEN 'waiting' THEN 1
-                        WHEN 'in_progress' THEN 2
-                        WHEN 'finished' THEN 3
-                        WHEN 'rejected' THEN 4
-                        WHEN 'cancelled' THEN 5
-                        ELSE 6
-                    END"
-                ),
+                // چون کدهای عددی وضعیت (1..5) از قبل دقیقاً با همین اولویت
+                // (در انتظار → در حال انجام → تمام‌شده → رد شده → لغو شده) تعریف شدن،
+                // مرتب‌سازی مستقیم روی ستون status کافیه و دیگه نیازی به CASE نیست.
+                'status' => $query->orderBy('status'),
                 default => $query->orderByDesc('orderID'),
             };
 
@@ -160,7 +155,7 @@ class OrderController extends Controller
 
         $orders = match (true) {
             (int) $user->role === 2 => $user->providerOrders()->where('status', Order::STATUS_WAITING)->with('customer')->orderByDesc('orderID')->get(),
-            in_array((int) $user->role, [3, 4], true) => $this->companyOf($user)?->orders()->where('status', Order::STATUS_WAITING)->with('customer')->orderByDesc('orderID')->get() ?? collect(),
+            in_array((int) $user->role, [3, 4], true) => $this->companyOf($user)?->ordersVisibleTo($user)->where('status', Order::STATUS_WAITING)->with('customer')->orderByDesc('orderID')->get() ?? collect(),
             default => collect(),
         };
 

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تماس با ما')
+@section('title', 'تماس با ما | جعبه‌ابزار')
 
 <link rel="stylesheet" href="{{ asset('css/contact.css') }}">
 

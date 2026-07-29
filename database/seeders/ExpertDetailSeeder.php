@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\ExpertDetail;
 use App\Models\User;
 use App\Models\WorkCategory;
+use Database\Seeders\Support\SeedContent;
 use Illuminate\Database\Seeder;
 use Faker\Factory as FakerFactory;
 
@@ -20,13 +21,23 @@ class ExpertDetailSeeder extends Seeder
         }
 
         $faker = FakerFactory::create('fa_IR');
+        $bios    = SeedContent::expertBios();
+        $resumes = SeedContent::expertResumes();
 
-        User::where('role', 2)->get()->each(function (User $expert) use ($categories, $faker) {
+        User::where('role', 2)->get()->each(function (User $expert) use ($categories, $faker, $bios, $resumes) {
+            $category = $categories->random();
+            $url = $category->url;
+
+            // اگه برای دسته‌بندی انتخاب‌شده متن اختصاصی نداشتیم (مثلاً دسته‌ی
+            // دستی جدیدی اضافه شده)، از دسته‌ی «سایر» استفاده می‌کنیم.
+            $bioPool    = $bios[$url]    ?? $bios['others'];
+            $resumePool = $resumes[$url] ?? $resumes['others'];
+
             ExpertDetail::create([
                 'userID'      => $expert->userID,
-                'categoryID'  => $categories->random()->categoryID,
-                'description' => $faker->realText(150),
-                'resume'      => $faker->realText(400),
+                'categoryID'  => $category->categoryID,
+                'description' => $faker->randomElement($bioPool),
+                'resume'      => $faker->randomElement($resumePool),
             ]);
         });
 

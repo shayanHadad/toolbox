@@ -15,8 +15,9 @@ class DatabaseSeeder extends Seeder
             ExpertDetailSeeder::class,   // نیاز به اکسپرت‌ها و دسته‌بندی‌های موجود
             CompanyCategorySeeder::class,// نیاز به شرکت‌ها و دسته‌بندی‌های موجود
             OrderSeeder::class,          // نیاز به مشتری‌ها و اکسپرت‌ها
-            MessageSeeder::class,        // نیاز به کاربران
+            MessageSeeder::class,        // نیاز به کاربران و سفارش‌ها
             BookmarkSeeder::class,       // نیاز به مشتری‌ها و اکسپرت‌ها
+            CompanyBookmarkSeeder::class,// نیاز به مشتری‌ها و شرکت‌ها
         ]);
     }
 }

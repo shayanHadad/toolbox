@@ -82,7 +82,27 @@
                 </button>
             </form>
             <a href="{{ route(auth()->user()->dashboardRoute())}}#profile-form" class="nav-profile-link" title="داشبورد کاربری">
+                @switch(auth()->user()->role)
+                @case(2)
+                {{-- Expert --}}
+                <img src="{{ asset('images/expert.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                @break
+
+                @case(3)
+                {{-- Company admin --}}
+                <img src="{{ asset('images/company.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                @break
+
+                @case(4)
+                {{-- Company owner --}}
+                <img src="{{ asset('images/company.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                @break
+
+                @default
+                {{-- Admin --}}
+                {{-- Customer --}}
                 <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                @endswitch
                 <span class="nav-profile-name">{{ auth()->user()->first_name }} {{ auth()->user()->last_name }}</span>
             </a>
             @endauth
@@ -146,7 +166,27 @@
 
             @auth
             <a href="{{ route(auth()->user()->dashboardRoute())}}#profile-form" class="btn btn-outline">
-                <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img-mobile">
+                @switch(auth()->user()->role)
+                @case(2)
+                {{-- Expert --}}
+                <img src="{{ asset('images/expert.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                @break
+
+                @case(3)
+                {{-- Company admin --}}
+                <img src="{{ asset('images/company.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                @break
+
+                @case(4)
+                {{-- Company owner --}}
+                <img src="{{ asset('images/company.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                @break
+
+                @default
+                {{-- Admin --}}
+                {{-- Customer --}}
+                <img src="{{ asset('images/default-pfp.png') }}" alt="پروفایل کاربری" class="nav-profile-img">
+                @endswitch
                 داشبورد
             </a>
             <form method="POST" action="{{ route('logout') }}">

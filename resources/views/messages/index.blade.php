@@ -16,13 +16,22 @@
         <div class="t-card messages-list-card">
 
             @forelse ($conversations as $conversation)
+                @php
+                    $isCompanyChat = $conversation->type === 'company' && $conversation->company;
+                    $displayName = $isCompanyChat
+                        ? $conversation->company->name
+                        : trim($conversation->partner->first_name . ' ' . $conversation->partner->last_name);
+                    $avatar = $isCompanyChat
+                        ? 'images/company.png'
+                        : ($conversation->partner->role == 2 ? 'images/expert.png' : 'images/default-pfp.png');
+                @endphp
                 <a href="{{ route('messages.show', $conversation->partner) }}" class="conversation-row">
 
-                    <span class="expert-avatar" style="background-image:url('{{ asset($conversation->partner->role == 2 ? 'images/expert.png' : 'images/default-pfp.png') }}')"></span>
+                    <span class="expert-avatar" style="background-image:url('{{ asset($avatar) }}')"></span>
 
                     <div style="min-width:0;">
                         <p class="conversation-name">
-                            {{ trim($conversation->partner->first_name . ' ' . $conversation->partner->last_name) }}
+                            {{ $displayName }}
                         </p>
                         <p class="conversation-preview">
                             {{ \Illuminate\Support\Str::limit($conversation->lastMessage->message ?? '', 60) }}

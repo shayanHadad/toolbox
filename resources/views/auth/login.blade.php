@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'ورود')
+@section('title', 'جعبه‌ابزار | ورود')
 
 <link rel="stylesheet" href="{{ asset('css/login.css') }}">
 

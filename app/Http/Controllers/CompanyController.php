@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Models\Order;
 use App\Models\WorkCategory;
 use Illuminate\Http\Request;
 
@@ -22,7 +23,7 @@ class CompanyController extends Controller
                 $q->whereNotNull('rating');
             }], 'rating')
             ->withCount(['orders as orders_count' => function ($q) {
-                $q->where('status', 'finished');
+                $q->where('status', Order::STATUS_FINISHED);
             }]);
 
         // --- سرچ بار: توی نام و توضیحات شرکت ---

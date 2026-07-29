@@ -46,7 +46,7 @@
             </div>
 
             @php
-            $stageKeys = ['waiting', 'in_progress', 'finished'];
+            $stageKeys = [\App\Models\Order::STATUS_WAITING, \App\Models\Order::STATUS_IN_PROGRESS, \App\Models\Order::STATUS_FINISHED];
             @endphp
 
             @forelse ($orders as $order)
@@ -69,7 +69,7 @@
                     </div>
                     <span class="cd-badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span>
                 </div>
-                @if (!in_array($order->status, ['rejected', 'cancelled']))
+                @if (!in_array($order->status, [\App\Models\Order::STATUS_REJECTED, \App\Models\Order::STATUS_CANCELLED]))
                 <div class="cd-stepper">
                     @foreach ($stageKeys as $i => $key)
                     <div class="cd-node {{ $i < $currentIndex ? 'done' : ($i === $currentIndex ? 'current' : '') }}"></div>
@@ -117,7 +117,7 @@
                 <a href="{{ route('messages.show', $message->sender) }}" class="cd-msg" style="display:block;text-decoration:none;">
                     <div class="cd-msg-top">
                         <p class="cd-msg-name">
-                            {{ $message->sender->first_name ?? 'User' }}
+                            {{ $message->companyID ? ($message->company->name ?? 'شرکت') : ($message->sender->first_name ?? 'کاربر') }}
                             @if ($message->status == 0)
                             <span class="cd-msg-unread"></span>
                             @endif

@@ -9,6 +9,7 @@
     window.addEventListener("scroll", toggle, {
         passive: true,
     });
+
     toggle();
 
     btn.addEventListener("click", () => {

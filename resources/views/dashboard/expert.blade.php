@@ -39,7 +39,7 @@
             <p class="cd-stat-label">سفارش‌های به اتمام رسیده</p>
             <p class="cd-stat-value" style="color:var(--amber)">{{ $stats['completed'] }}</p>
         </div>
-        <a href="{{ route('orders.index', ['status' => 'waiting']) }}" class="cd-stat" style="text-decoration:none;">
+        <a href="{{ route('orders.index', ['status' => \App\Models\Order::STATUS_WAITING]) }}" class="cd-stat" style="text-decoration:none;">
             <p class="cd-stat-label">درخواست‌های در انتظار</p>
             <p class="cd-stat-value" style="color:var(--indigo)">{{ $stats['requests'] }}</p>
         </a>
@@ -59,7 +59,7 @@
             </div>
 
             @php
-            $stageKeys = ['waiting', 'in_progress', 'finished'];
+            $stageKeys = [\App\Models\Order::STATUS_WAITING, \App\Models\Order::STATUS_IN_PROGRESS, \App\Models\Order::STATUS_FINISHED];
             @endphp
 
             @forelse ($orders as $order)
@@ -79,7 +79,7 @@
                     </div>
                     <span class="cd-badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span>
                 </div>
-                @if (!in_array($order->status, ['rejected', 'cancelled']))
+                @if (!in_array($order->status, [\App\Models\Order::STATUS_REJECTED, \App\Models\Order::STATUS_CANCELLED]))
                 <div class="cd-stepper">
                     @foreach ($stageKeys as $i => $key)
                     <div class="cd-node {{ $i < $currentIndex ? 'done' : ($i === $currentIndex ? 'current' : '') }}"></div>

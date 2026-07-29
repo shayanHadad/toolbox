@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Message;
-use App\Models\Order;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AccountController extends Controller
 {
     /**
-     * حذف کامل و همیشگی حساب کاربری، به‌همراه تمام رکوردهای وابسته‌ای
-     * که در دیتابیس cascade نمی‌شن (سفارش‌ها و پیام‌ها).
+     * حذف (نرم) حساب کاربری. چون مدل User از SoftDeletes استفاده می‌کنه،
+     * دیگه لازم نیست سفارش‌ها و پیام‌های کاربر رو دستی پاک کنیم؛ ردیف
+     * کاربر فقط deleted_at می‌گیره، حساب دیگه قابل لاگین نیست و از همه‌ی
+     * لیست‌های عمومی (متخصص‌ها، شرکت‌ها و ...) خودکار کنار می‌ره، ولی
+     * تاریخچه‌ی سفارش‌ها/پیام‌هایی که طرفِ دیگه‌شون (مثل یک شرکت یا
+     * متخصص) داره، دست‌نخورده می‌مونه.
      *
      * برای مشتری (role=1) و متخصص (role=2) مجازه؛ این محدودیت روی
      * روت با میدلور role:1,2 اعمال شده.
@@ -38,32 +38,14 @@ class AccountController extends Controller
                 ->with('deleteAccountOpen', true);
         }
 
-        try {
-            DB::transaction(function () use ($user) {
-                // سفارش‌هایی که کاربر توشون مشتری یا ارائه‌دهنده‌ی خدمات بوده.
-                Order::where('customerID', $user->userID)
-                    ->orWhere('providerID', $user->userID)
-                    ->delete();
-
-                // تمام پیام‌های ارسالی/دریافتیِ کاربر.
-                Message::where('senderID', $user->userID)
-                    ->orWhere('receiverID', $user->userID)
-                    ->delete();
-
-                // بوکمارک‌ها و پروفایل تخصصی (در صورت وجود) از طریق
-                // cascadeOnDelete توی خود دیتابیس پاک می‌شن.
-                $user->delete();
-            });
-        } catch (QueryException $e) {
-            return back()
-                ->with('error', 'حذف حساب با خطای غیرمنتظره‌ای مواجه شد. لطفاً دوباره تلاش کن یا با پشتیبانی تماس بگیر.')
-                ->with('deleteAccountOpen', true);
-        }
+        // username و contact_number مخدوش می‌شن (چون یونیک‌ان و ردیف
+        // فیزیکاً باقی می‌مونه)، بعد ردیف soft-delete می‌شه.
+        $user->anonymizeAndDelete();
 
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('home')->with('success', 'حساب کاربری‌ات و تمام اطلاعات مربوط بهش برای همیشه حذف شد.');
+        return redirect()->route('home')->with('success', 'حساب کاربری‌ات با موفقیت حذف شد.');
     }
 }

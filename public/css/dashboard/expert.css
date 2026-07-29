@@ -89,6 +89,36 @@
     .cd-checkbox { display: flex; align-items: center; gap: 6px; font-size: 13.5px; color: var(--text, #1F2937); cursor: pointer; }
     .cd-checkbox input { accent-color: var(--indigo-light, #3D6FB4); cursor: pointer; }
 
+    /* Search/filter bar (dashboard/admin.blade.php companies section) */
+    .cd-filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 14px;
+        background: var(--paper, #F3F5F8);
+        border: 1px solid var(--border, #E2E6ED);
+        border-radius: var(--radius-sm, 10px);
+        padding: 14px 16px;
+        margin-bottom: 18px;
+    }
+    .cd-filter-field { display: flex; flex-direction: column; gap: 6px; flex: 1 1 180px; }
+    .cd-filter-field label { font-size: 12.5px; font-weight: 600; color: var(--text-light, #66707F); }
+    .cd-filter-field input, .cd-filter-field select {
+        padding: 10px 14px;
+        border: 1px solid var(--border, #E2E6ED);
+        border-radius: var(--radius-sm, 10px);
+        background: var(--surface, #fff);
+        font-family: var(--font-body, "Vazirmatn", sans-serif);
+        font-size: 14px;
+        color: var(--text, #1F2937);
+    }
+    .cd-filter-field select { cursor: pointer; }
+    .cd-filter-field input:focus, .cd-filter-field select:focus { outline: 2px solid var(--indigo-light, #3D6FB4); outline-offset: 1px; }
+    .cd-filter-actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
+    .cd-filter-clear { font-size: 13.5px; color: var(--text-light, #66707F); text-decoration: none; }
+    .cd-filter-clear:hover { color: var(--danger, #D6455B); }
+    .cd-filter-count { font-size: 13px; color: var(--text-light, #66707F); margin: 0 0 14px; }
+
     .cd-warning {
         display: flex;
         align-items: center;
@@ -131,3 +161,33 @@
     .cd-danger-form { margin-top: 16px; max-width: 360px; }
     .cd-btn-danger { background: var(--danger, #D6455B) !important; }
     .cd-btn-danger:hover { background: #B93A4E !important; }
+
+    /* Company admins accordion (dashboard/company.blade.php) */
+    .cd-admin-item {
+        border: 1px solid transparent;
+        border-radius: var(--radius-sm, 10px);
+        padding: 12px 24px;
+        margin: 0 -24px;
+        transition: var(--transition, .25s ease);
+    }
+    .cd-admin-item:hover { background: var(--paper, #F3F5F8); border-color: var(--border, #E2E6ED); }
+    .cd-admin-item[open] { background: rgba(61,111,180,.06); border-color: var(--indigo-light, #3D6FB4); }
+    .cd-admin-item[open] .cd-order-name { color: var(--indigo-light, #3D6FB4); }
+
+    .cd-admin-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        cursor: pointer;
+        list-style: none;
+    }
+    .cd-admin-summary::-webkit-details-marker { display: none; }
+    .cd-admin-summary::after {
+        content: '▾';
+        flex-shrink: 0;
+        font-size: 13px;
+        color: var(--text-light, #66707F);
+        transition: transform .25s ease, color .25s ease;
+    }
+    .cd-admin-item[open] .cd-admin-summary::after { transform: rotate(180deg); color: var(--indigo-light, #3D6FB4); }

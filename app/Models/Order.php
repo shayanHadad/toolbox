@@ -8,12 +8,12 @@ class Order extends Model
 {
     protected $primaryKey = 'orderID';
 
-    // کدهای معتبر برای ستون status
-    public const STATUS_WAITING    = 'waiting';
-    public const STATUS_IN_PROGRESS = 'in_progress';
-    public const STATUS_FINISHED   = 'finished';
-    public const STATUS_REJECTED   = 'rejected';
-    public const STATUS_CANCELLED  = 'cancelled';
+    // کدهای عددی معتبر برای ستون status
+    public const STATUS_WAITING     = 1;
+    public const STATUS_IN_PROGRESS = 2;
+    public const STATUS_FINISHED    = 3;
+    public const STATUS_REJECTED    = 4;
+    public const STATUS_CANCELLED   = 5;
 
     protected $fillable = [
         'customerID',
@@ -26,6 +26,13 @@ class Order extends Model
         'order_date',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'status' => 'integer',
+        ];
+    }
+
     /**
      * برچسب فارسیِ قابل‌نمایش برای هر وضعیت.
      */
@@ -37,7 +44,7 @@ class Order extends Model
             self::STATUS_FINISHED    => 'تمام شده',
             self::STATUS_REJECTED    => 'رد شده',
             self::STATUS_CANCELLED   => 'لغو شده',
-            default                  => ucfirst($this->status),
+            default                  => 'وضعیت نامشخص #' . $this->status,
         };
     }
 
@@ -79,14 +86,19 @@ class Order extends Model
             ->update(['status' => self::STATUS_FINISHED]);
     }
 
+    /**
+     * withTrashed() اینجا لازمه چون بعد از soft-delete شدن یک کاربر،
+     * سفارش‌های قدیمی همچنان باید مشتری/ارائه‌دهنده رو نشون بدن، نه
+     * اینکه customer/provider یهو null بشه.
+     */
     public function customer()
     {
-        return $this->belongsTo(User::class, 'customerID', 'userID');
+        return $this->belongsTo(User::class, 'customerID', 'userID')->withTrashed();
     }
 
     public function provider()
     {
-        return $this->belongsTo(User::class, 'providerID', 'userID');
+        return $this->belongsTo(User::class, 'providerID', 'userID')->withTrashed();
     }
 
     public function company()

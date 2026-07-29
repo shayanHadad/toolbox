@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'درباره ما')
+@section('title', ' درباره ما | جعبه‌ابزار')
 
 @section('content')
 

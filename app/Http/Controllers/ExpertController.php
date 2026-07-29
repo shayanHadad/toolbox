@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\User;
 use App\Models\WorkCategory;
 use Illuminate\Http\Request;
@@ -25,7 +26,7 @@ class ExpertController extends Controller
                 $q->whereNotNull('rating');
             }], 'rating')
             ->withCount(['providerOrders as orders_count' => function ($q) {
-                $q->where('status', 'finished');
+                $q->where('status', Order::STATUS_FINISHED);
             }]);
 
         // --- سرچ بار: توی نام، نام کاربری و توضیحات پروفایل ---

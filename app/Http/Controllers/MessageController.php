@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -9,20 +10,37 @@ use Illuminate\Http\Request;
 class MessageController extends Controller
 {
     /**
-     * لیست مکالمه‌های کاربر لاگین‌کرده (گروه‌بندی‌شده بر اساس طرف مکالمه)،
-     * جدیدترین مکالمه اول.
+     * لیست مکالمه‌های کاربر لاگین‌کرده.
+     * - مشتری/متخصص (role=1,2): مثل قبل، به‌علاوه اینکه اگر با یک شرکت
+     *   چت کرده باشند، تمام پیام‌های آن شرکت (مستقل از اینکه کدوم ادمین
+     *   پاسخ داده) در یک ردیف واحد نمایش داده می‌شود.
+     * - ادمین/مالک شرکت (role=3,4): لیست مشتری‌هایی که با شرکت (نه با
+     *   خودِ این ادمین) چت کرده‌اند؛ تاریخچه‌ی مشترک بین همه‌ی ادمین‌ها.
      */
     public function index(Request $request)
     {
         $user = $request->user();
 
-        $partnerIds = Message::where('senderID', $user->userID)
+        if (in_array((int) $user->role, [3, 4], true)) {
+            return $this->indexForCompany($user);
+        }
+
+        return $this->indexForRegularUser($user);
+    }
+
+    protected function indexForRegularUser(User $user)
+    {
+        $messages = Message::where('senderID', $user->userID)
             ->orWhere('receiverID', $user->userID)
-            ->get(['senderID', 'receiverID'])
+            ->get(['senderID', 'receiverID', 'companyID']);
+
+        // مکالمات شخصی (بدون شرکت): دقیقا مثل رفتار قبلی، گروه‌بندی بر اساس طرف مقابل
+        $personalPartnerIds = $messages
+            ->whereNull('companyID')
             ->map(fn($m) => $m->senderID == $user->userID ? $m->receiverID : $m->senderID)
             ->unique();
 
-        $conversations = User::whereIn('userID', $partnerIds)
+        $personalConversations = User::whereIn('userID', $personalPartnerIds)
             ->get()
             ->map(function (User $partner) use ($user) {
                 $lastMessage = $this->conversationQuery($user, $partner)
@@ -31,15 +49,54 @@ class MessageController extends Controller
 
                 $unreadCount = Message::where('senderID', $partner->userID)
                     ->where('receiverID', $user->userID)
+                    ->whereNull('companyID')
                     ->where('status', 0)
                     ->count();
 
                 return (object) [
-                    'partner'      => $partner,
-                    'lastMessage'  => $lastMessage,
-                    'unreadCount'  => $unreadCount,
+                    'type'        => 'user',
+                    'partner'     => $partner,
+                    'company'     => null,
+                    'lastMessage' => $lastMessage,
+                    'unreadCount' => $unreadCount,
                 ];
-            })
+            });
+
+        // مکالمات شرکتی: یک ردیف واحد به‌ازای هر companyID، نه یکی برای هر ادمین
+        $companyIds = $messages->pluck('companyID')->filter()->unique();
+
+        $companyConversations = $companyIds->map(function ($companyID) use ($user) {
+            $lastMessage = Message::forCompany($companyID)
+                ->where(function ($q) use ($user) {
+                    $q->where('senderID', $user->userID)
+                        ->orWhere('receiverID', $user->userID);
+                })
+                ->latest('messageID')
+                ->first();
+
+            $unreadCount = Message::forCompany($companyID)
+                ->where('receiverID', $user->userID)
+                ->where('status', 0)
+                ->count();
+
+            // برای لینک به messages.show باید یک User مشخص بدیم (route model
+            // binding قبلی حفظ می‌شه)؛ آخرین طرف مقابل کافیه، چون show()
+            // تشخیص مکالمه‌ی شرکتی رو از روی companyID انجام می‌ده، نه از
+            // روی اینکه دقیقاً کدوم ادمین partner هست.
+            $routePartnerId = $lastMessage
+                ? ($lastMessage->senderID == $user->userID ? $lastMessage->receiverID : $lastMessage->senderID)
+                : null;
+
+            return (object) [
+                'type'        => 'company',
+                'partner'     => $routePartnerId ? User::find($routePartnerId) : null,
+                'company'     => Company::find($companyID),
+                'lastMessage' => $lastMessage,
+                'unreadCount' => $unreadCount,
+            ];
+        });
+
+        $conversations = $personalConversations->merge($companyConversations)
             ->sort(function ($a, $b) {
                 // ابتدا مکالمه‌هایی که پیام خوانده‌نشده دارند
                 if (($a->unreadCount > 0) !== ($b->unreadCount > 0)) {
@@ -51,20 +108,148 @@ class MessageController extends Controller
                     <=> ($a->lastMessage?->messageID ?? 0);
             })
             ->values();
+
+        return view('messages.index', [
+            'conversations' => $conversations,
+        ]);
+    }
+
+    protected function indexForCompany(User $user)
+    {
+        $companyID = Message::companyIdForUser($user);
+
+        abort_unless($companyID, 403, 'کاربر شرکت به هیچ شرکتی متصل نیست.');
+
+        $companyMessages = Message::forCompany($companyID)->get(['senderID', 'receiverID']);
+
+        // مشتری همیشه طرفی از پیام است که عضو شرکت (role 3/4) نیست
+        $customerIds = $companyMessages
+            ->map(function (Message $m) {
+                $sender = User::find($m->senderID);
+                $senderIsStaff = $sender && in_array((int) $sender->role, [3, 4], true);
+
+                return $senderIsStaff ? $m->receiverID : $m->senderID;
+            })
+            ->unique();
+
+        $conversations = User::whereIn('userID', $customerIds)
+            ->get()
+            ->map(function (User $customer) use ($companyID) {
+                $lastMessage = Message::forCompany($companyID)
+                    ->where(function ($q) use ($customer) {
+                        $q->where('senderID', $customer->userID)
+                            ->orWhere('receiverID', $customer->userID);
+                    })
+                    ->latest('messageID')
+                    ->first();
+
+                // خوانده‌نشده = پیام‌هایی که این مشتری فرستاده و هنوز توسط
+                // هیچ‌کدام از اعضای شرکت خوانده نشده (اینباکس مشترک)
+                $unreadCount = Message::forCompany($companyID)
+                    ->where('senderID', $customer->userID)
+                    ->where('status', 0)
+                    ->count();
+
+                return (object) [
+                    'type'        => 'company',
+                    'partner'     => $customer,
+                    'company'     => null,
+                    'lastMessage' => $lastMessage,
+                    'unreadCount' => $unreadCount,
+                ];
+            })
+            // ادمین شرکت (role=3) فقط مکالمه‌هایی رو می‌بینه که فعلاً پیام
+            // خوانده‌نشده دارن؛ مالک شرکت (role=4) به همه‌شون دسترسی داره.
+            ->when((int) $user->role === 3, fn ($conversations) => $conversations->filter(
+                fn ($conversation) => $conversation->unreadCount > 0
+            ))
+            ->sort(function ($a, $b) {
+                if (($a->unreadCount > 0) !== ($b->unreadCount > 0)) {
+                    return $a->unreadCount > 0 ? -1 : 1;
+                }
+
+                return ($b->lastMessage?->messageID ?? 0)
+                    <=> ($a->lastMessage?->messageID ?? 0);
+            })
+            ->values();
+
         return view('messages.index', [
             'conversations' => $conversations,
         ]);
     }
 
     /**
-     * صفحه‌ی چت اختصاصی کاربر لاگین‌کرده با یک نفر دیگه (مثلاً یک متخصص).
-     * تاریخچه‌ی کامل پیام‌های رد و بدل شده بین این دو نفر رو نشون می‌ده.
+     * صفحه‌ی چت.
+     * - اگر یکی از دو طرف (کاربر لاگین‌کرده یا partner) عضو شرکت باشد،
+     *   کل تاریخچه‌ی companyID <-> مشتری نشون داده می‌شه (مستقل از اینکه
+     *   partner دقیقاً کدوم ادمین/مالک شرکت هست).
+     * - در غیر این صورت، رفتار قبلی (چت شخصی صرفاً بین این دو نفر) حفظ می‌شه.
+     *
+     * برخلاف بقیه‌ی مسیرهایی که User رو implicit bind می‌کنن، اینجا
+     * partner رو دستی و با withTrashed() پیدا می‌کنیم؛ چون این صفحه
+     * قراره تاریخچه‌ی یک مکالمه‌ی *قدیمی* رو نشون بده، حتی اگه طرفِ
+     * مکالمه (مثلاً یک ادمین شرکتِ حذف‌شده) دیگه soft-delete شده باشه.
+     * این باعث نمی‌شه بشه با کاربر حذف‌شده پیام *جدید* رد و بدل کرد،
+     * چون messages.store همچنان از implicit binding پیش‌فرض (بدون
+     * trashed) استفاده می‌کنه.
      */
-    public function show(Request $request, User $partner)
+    public function show(Request $request, int $partner)
     {
         $user = $request->user();
 
+        $partner = User::withTrashed()->find($partner);
+
+        abort_unless($partner, 404);
+
         abort_if($user->userID === $partner->userID, 404);
+
+        $companyID = Message::companyIdForUser($user) ?? Message::companyIdForUser($partner);
+
+        if ($companyID) {
+            $isStaffViewer = in_array((int) $user->role, [3, 4], true);
+            $customer = $isStaffViewer ? $partner : $user;
+
+            if ($isStaffViewer && (int) $user->role === 3) {
+                // ادمین شرکت فقط به مکالمه‌هایی دسترسی داره که فعلاً پیام
+                // خوانده‌نشده دارن؛ در غیر این صورت اصلاً اجازه‌ی باز
+                // کردنش رو نداره (برخلاف مالک شرکت که به همه دسترسی داره).
+                $hasUnread = Message::forCompany($companyID)
+                    ->where('senderID', $customer->userID)
+                    ->where('status', 0)
+                    ->exists();
+
+                abort_unless($hasUnread, 404);
+            }
+
+            $messages = Message::forCompany($companyID)
+                ->where(function ($q) use ($customer) {
+                    $q->where('senderID', $customer->userID)
+                        ->orWhere('receiverID', $customer->userID);
+                })
+                ->with(['sender', 'receiver'])
+                ->orderBy('messageID')
+                ->get();
+
+            if ($isStaffViewer) {
+                // پیام‌های ارسالی مشتری برای کل تیم شرکت خوانده‌شده علامت بزن
+                Message::forCompany($companyID)
+                    ->where('senderID', $customer->userID)
+                    ->where('status', 0)
+                    ->update(['status' => 1]);
+            } else {
+                // پیام‌های ارسالی هر یک از اعضای شرکت که برای این مشتری فرستاده شده
+                Message::forCompany($companyID)
+                    ->where('receiverID', $user->userID)
+                    ->where('status', 0)
+                    ->update(['status' => 1]);
+            }
+
+            return view('messages.show', [
+                'partner'  => $partner,
+                'messages' => $messages,
+                'company'  => Company::find($companyID),
+            ]);
+        }
 
         $messages = $this->conversationQuery($user, $partner)
             ->with(['sender', 'receiver'])
@@ -80,6 +265,7 @@ class MessageController extends Controller
         return view('messages.show', [
             'partner'  => $partner,
             'messages' => $messages,
+            'company'  => null,
         ]);
     }
 
@@ -116,11 +302,17 @@ class MessageController extends Controller
             'message.max'      => 'پیام نمی‌تونه بیشتر از ۲۰۰۰ کاراکتر باشه.',
         ]);
 
+        // اگر فرستنده یا گیرنده عضو شرکت (role 3/4) باشه، پیام به companyID
+        // مربوطه وصل می‌شه تا بین همه‌ی ادمین‌های شرکت مشترک باشه؛ در غیر
+        // این صورت null می‌مونه (چت شخصی).
+        $companyID = Message::resolveCompanyId($user, $partner);
+
         Message::create([
             'senderID'   => $user->userID,
             'receiverID' => $partner->userID,
             'message'    => $data['message'],
             'status'     => 0, // unread
+            'companyID'  => $companyID,
         ]);
 
         return redirect()
@@ -129,14 +321,19 @@ class MessageController extends Controller
     }
 
     /**
-     * تمام پیام‌های رد و بدل شده (در هر دو جهت) بین دو کاربر.
+     * تمام پیام‌های رد و بدل شده (در هر دو جهت) بین دو کاربر، فقط برای
+     * چت شخصی (بدون شرکت). چت‌های شرکتی در show()/index() با companyID
+     * و اسکوپ forCompany() مدیریت می‌شوند.
      */
     private function conversationQuery(User $a, User $b)
     {
-        return Message::where(function ($q) use ($a, $b) {
-            $q->where('senderID', $a->userID)->where('receiverID', $b->userID);
-        })->orWhere(function ($q) use ($a, $b) {
-            $q->where('senderID', $b->userID)->where('receiverID', $a->userID);
-        });
+        return Message::whereNull('companyID')
+            ->where(function ($q) use ($a, $b) {
+                $q->where(function ($q2) use ($a, $b) {
+                    $q2->where('senderID', $a->userID)->where('receiverID', $b->userID);
+                })->orWhere(function ($q2) use ($a, $b) {
+                    $q2->where('senderID', $b->userID)->where('receiverID', $a->userID);
+                });
+            });
     }
 }
