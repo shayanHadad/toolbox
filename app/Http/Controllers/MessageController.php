@@ -40,7 +40,7 @@ class MessageController extends Controller
             ->map(fn($m) => $m->senderID == $user->userID ? $m->receiverID : $m->senderID)
             ->unique();
 
-        $personalConversations = User::whereIn('userID', $personalPartnerIds)
+        $personalConversations = User::withTrashed()->whereIn('userID', $personalPartnerIds)
             ->get()
             ->map(function (User $partner) use ($user) {
                 $lastMessage = $this->conversationQuery($user, $partner)
@@ -89,7 +89,7 @@ class MessageController extends Controller
 
             return (object) [
                 'type'        => 'company',
-                'partner'     => $routePartnerId ? User::find($routePartnerId) : null,
+                'partner'     => $routePartnerId ? User::withTrashed()->find($routePartnerId) : null,
                 'company'     => Company::find($companyID),
                 'lastMessage' => $lastMessage,
                 'unreadCount' => $unreadCount,
@@ -120,19 +120,24 @@ class MessageController extends Controller
 
         abort_unless($companyID, 403, 'کاربر شرکت به هیچ شرکتی متصل نیست.');
 
+        $company = Company::find($companyID);
+
+        abort_unless($company, 404);
+
+        // آی‌دیِ همه‌ی کسانی که تا الان نماینده‌ی این شرکت بوده‌ن، از جمله
+        // اون‌هایی که بعداً soft-delete شدن؛ اگه به‌جاش برای هر پیام یه
+        // User::find() تازه می‌زدیم، پیامِ فرستاده‌شده توسط یه ادمینِ
+        // حذف‌شده اشتباهی «پیامِ مشتری» تشخیص داده می‌شد.
+        $repIds = $company->repUserIds();
+
         $companyMessages = Message::forCompany($companyID)->get(['senderID', 'receiverID']);
 
         // مشتری همیشه طرفی از پیام است که عضو شرکت (role 3/4) نیست
         $customerIds = $companyMessages
-            ->map(function (Message $m) {
-                $sender = User::find($m->senderID);
-                $senderIsStaff = $sender && in_array((int) $sender->role, [3, 4], true);
-
-                return $senderIsStaff ? $m->receiverID : $m->senderID;
-            })
+            ->map(fn (Message $m) => in_array($m->senderID, $repIds, true) ? $m->receiverID : $m->senderID)
             ->unique();
 
-        $conversations = User::whereIn('userID', $customerIds)
+        $conversations = User::withTrashed()->whereIn('userID', $customerIds)
             ->get()
             ->map(function (User $customer) use ($companyID) {
                 $lastMessage = Message::forCompany($companyID)
@@ -189,9 +194,10 @@ class MessageController extends Controller
      * partner رو دستی و با withTrashed() پیدا می‌کنیم؛ چون این صفحه
      * قراره تاریخچه‌ی یک مکالمه‌ی *قدیمی* رو نشون بده، حتی اگه طرفِ
      * مکالمه (مثلاً یک ادمین شرکتِ حذف‌شده) دیگه soft-delete شده باشه.
-     * این باعث نمی‌شه بشه با کاربر حذف‌شده پیام *جدید* رد و بدل کرد،
-     * چون messages.store همچنان از implicit binding پیش‌فرض (بدون
-     * trashed) استفاده می‌کنه.
+     * store() هم مشابه همین withTrashed() رو داره تا بشه به یک مکالمه‌ی
+     * شرکتی که آخرین طرفِ مسیرشده‌اش حذف شده جواب داد؛ فقط برای چتِ
+     * شخصیِ (بدون شرکت) با یک کاربرِ کاملاً حذف‌شده، شروع/ادامه‌ی پیامِ
+     * جدید همچنان مسدوده (چون دیگه کسی نیست که بخونتش).
      */
     public function show(Request $request, int $partner)
     {
@@ -276,16 +282,36 @@ class MessageController extends Controller
      * role=3 (ادمین شرکت) یا role=4 (مالک شرکت) مجاز است؛ این محدودیت
      * روی روت با میدلور role:1,2,3,4 اعمال شده.
      */
-    public function store(Request $request, User $partner)
+    public function store(Request $request, int $partner)
     {
         $user = $request->user();
 
+        // برخلاف implicit binding معمولی (که کاربر soft-delete‌شده رو در
+        // نظر نمی‌گیره)، اینجا دستی با withTrashed() پیدا می‌کنیم؛ چون
+        // توی یه مکالمه‌ی شرکتی، ممکنه آخرین طرفِ مسیرشده (routePartnerId)
+        // یه ادمین/مالکِ حذف‌شده باشه، درحالی‌که بقیه‌ی اعضای فعالِ همون
+        // شرکت هنوز باید بتونن پیامِ جدید رو دریافت کنن.
+        $partner = User::withTrashed()->find($partner);
+
+        abort_unless($partner, 404);
         abort_if($user->userID === $partner->userID, 404);
+
+        // اگر فرستنده یا گیرنده عضو شرکت (role 3/4) باشه، پیام به companyID
+        // مربوطه وصل می‌شه تا بین همه‌ی ادمین‌های شرکت مشترک باشه؛ در غیر
+        // این صورت null می‌مونه (چت شخصی).
+        $companyID = Message::resolveCompanyId($user, $partner);
+
+        // اگه این یه مکالمه‌ی شرکتی نیست (یعنی نه فرستنده نه گیرنده عضو
+        // شرکتن) و طرفِ مقابل soft-delete شده، اجازه‌ی شروع/ادامه‌ی پیامِ
+        // جدید داده نمی‌شه؛ چون دیگه کاربر فعالی نیست که بخونتش. برای
+        // مکالمه‌ی شرکتی این محدودیت اعمال نمی‌شه، چون پیام به کل اینباکسِ
+        // مشترکِ شرکت می‌ره، نه فقط به همین یک نفر.
+        abort_if(! $companyID && $partner->trashed(), 404);
 
         if ($user->role == 1) {
             // مشتری می‌تونه به متخصص‌های با پروفایل تکمیل‌شده یا نماینده‌ی یه شرکت پیام بده
             $isExpert = $partner->role == 2 && $partner->expertDetail;
-            $isCompanyRep = in_array((int) $partner->role, [3, 4], true) && $partner->companyAdmin?->company;
+            $isCompanyRep = in_array((int) $partner->role, [3, 4], true) && $companyID;
 
             abort_unless($isExpert || $isCompanyRep, 404);
         } elseif (in_array((int) $user->role, [2, 3, 4], true)) {
@@ -302,11 +328,6 @@ class MessageController extends Controller
             'message.max'      => 'پیام نمی‌تونه بیشتر از ۲۰۰۰ کاراکتر باشه.',
         ]);
 
-        // اگر فرستنده یا گیرنده عضو شرکت (role 3/4) باشه، پیام به companyID
-        // مربوطه وصل می‌شه تا بین همه‌ی ادمین‌های شرکت مشترک باشه؛ در غیر
-        // این صورت null می‌مونه (چت شخصی).
-        $companyID = Message::resolveCompanyId($user, $partner);
-
         Message::create([
             'senderID'   => $user->userID,
             'receiverID' => $partner->userID,
@@ -316,7 +337,7 @@ class MessageController extends Controller
         ]);
 
         return redirect()
-            ->route('messages.show', $partner)
+            ->route('messages.show', $partner->userID)
             ->with('success', 'پیامت با موفقیت ارسال شد.');
     }
 
@@ -327,13 +348,6 @@ class MessageController extends Controller
      */
     private function conversationQuery(User $a, User $b)
     {
-        return Message::whereNull('companyID')
-            ->where(function ($q) use ($a, $b) {
-                $q->where(function ($q2) use ($a, $b) {
-                    $q2->where('senderID', $a->userID)->where('receiverID', $b->userID);
-                })->orWhere(function ($q2) use ($a, $b) {
-                    $q2->where('senderID', $b->userID)->where('receiverID', $a->userID);
-                });
-            });
+        return Message::betweenUsers($a->userID, $b->userID);
     }
 }

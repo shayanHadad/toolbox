@@ -26,6 +26,22 @@ class Company extends Model
         return $this->hasMany(CompanyAdmin::class, 'companyID', 'companyID');
     }
 
+    /**
+     * آی‌دیِ تمام کاربرهایی که تا الان نماینده‌ی این شرکت بوده‌ن (role=3،
+     * role=4)، از جمله اون‌هایی که soft-delete شدن. برای این‌که تشخیص
+     * «این پیام رو یه عضو شرکت فرستاده» یا رزولوشنِ تاریخچه‌ی مکالمه‌ها
+     * درست بمونه، حتی بعد از حذف یه ادمین/مالک.
+     */
+    public function repUserIds(): array
+    {
+        return $this->admins()
+            ->with(['users' => fn ($q) => $q->withTrashed()])
+            ->get()
+            ->flatMap->users
+            ->pluck('userID')
+            ->all();
+    }
+
     public function categories()
     {
         return $this->belongsToMany(

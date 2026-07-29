@@ -34,7 +34,7 @@ Route::get('/contact', function () {
 })->name('contact');
 
 Route::post('/contact', [ContactController::class, 'send'])
-    ->middleware('auth')
+    ->middleware('auth.custom')
     ->name('contact.send');
 
 // Home page

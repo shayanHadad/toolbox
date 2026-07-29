@@ -16,7 +16,7 @@
                 <input type="text" name="login" value="{{ old('login') }}" required autofocus>
                 <label>نام کاربری یا شماره تماس</label>
                 @error('login')
-                    <span class="text-danger">{{ $message }}</span>
+                <span class="text-danger">{{ $message }}</span>
                 @enderror
             </div>
 
@@ -24,7 +24,7 @@
                 <input type="password" name="password" required>
                 <label>رمز عبور</label>
                 @error('password')
-                    <span class="text-danger">{{ $message }}</span>
+                <span class="text-danger">{{ $message }}</span>
                 @enderror
             </div>
 
@@ -35,6 +35,10 @@
                 <span></span>
                 <span></span>
             </button>
+            <!-- <label class="user-box">
+                <input type="checkbox" name="remember" value="1">
+                مرا به خاطر بسپار
+            </label> -->
         </form>
 
         <p class="bottom-text">
