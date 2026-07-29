@@ -47,8 +47,8 @@
                 لیست ادمین‌ها
             </a>
         </div>
+        @endif
     </div>
-    @endif
 
     @if (session('success'))
     <div class="cd-alert cd-alert-success" style="margin-top:16px;">{{ session('success') }}</div>

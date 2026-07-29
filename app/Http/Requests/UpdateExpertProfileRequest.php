@@ -48,6 +48,14 @@ class UpdateExpertProfileRequest extends FormRequest
                 'regex:/^[A-Za-z0-9!@#$%^&*()_+\-=]+$/',
                 'confirmed',
             ],
+            // همون سیاست‌های امنیتیِ آپلود که توی UpdateProfileRequest هست.
+            'profile_picture' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:2048',
+                'dimensions:min_width=100,min_height=100,max_width=4000,max_height=4000',
+            ],
 
             // expert_details fields
             'category_id' => [
@@ -87,6 +95,11 @@ class UpdateExpertProfileRequest extends FormRequest
             'password.min' => 'رمز عبور باید حداقل ۸ کاراکتر باشد.',
             'password.regex' => 'رمز عبور فقط باید شامل کاراکترهای انگلیسی باشد.',
             'password.confirmed' => 'تکرار رمز عبور مطابقت ندارد.',
+
+            'profile_picture.image' => 'فایل انتخاب‌شده باید یک تصویر معتبر باشد.',
+            'profile_picture.mimes' => 'فرمت عکس باید jpeg، jpg، png یا webp باشد.',
+            'profile_picture.max' => 'حجم عکس نباید بیشتر از ۲ مگابایت باشد.',
+            'profile_picture.dimensions' => 'ابعاد عکس معتبر نیست.',
 
             'category_id.required' => 'انتخاب دسته‌بندی الزامی است.',
             'category_id.exists' => 'دسته‌بندی انتخاب شده معتبر نیست.',

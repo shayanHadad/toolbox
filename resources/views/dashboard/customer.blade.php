@@ -11,7 +11,7 @@
     {{-- Header --}}
     <div class="cd-header">
         <div class="cd-header-left">
-            <img src="{{ asset('images/default-pfp.png') }}" alt="{{ $user->first_name }}" class="cd-avatar">
+            <img src="{{ $user->profilePictureUrl() }}" alt="{{ $user->first_name }}" class="cd-avatar">
             <div>
                 <p class="cd-eyebrow">{{ $user->username }}</p>
                 <p class="cd-name">{{ $user->first_name }} {{ $user->last_name }}</p>
@@ -97,7 +97,7 @@
                 </div>
                 @forelse ($bookmarkedProviders as $provider)
                 <div class="cd-row">
-                    <img src="{{ asset('images/expert.png') }}" class="cd-row-avatar" alt="{{ $provider->first_name }}">
+                    <img src="{{ $provider->profilePictureUrl() }}" class="cd-row-avatar" alt="{{ $provider->first_name }}">
                     <div style="min-width:0">
                         <p class="cd-row-name">{{ $provider->first_name }} {{ $provider->last_name }}</p>
                         <p class="cd-row-sub">{{ $provider->expertDetail->specialty ?? 'Provider' }}</p>
@@ -143,12 +143,11 @@
         <div class="cd-alert cd-alert-success">{{ session('success') }}</div>
         @endif
 
-        <form action="{{ route('customer.profile.update') }}" method="POST">
+        <form action="{{ route('customer.profile.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PATCH')
 
             <div class="cd-form-grid">
-
                 <div class="cd-field">
                     <label class="cd-label" for="username">نام کاربری</label>
                     <input type="text" id="username" name="username" class="cd-input"
@@ -207,6 +206,23 @@
                     <label class="cd-label" for="password_confirmation">تکرار رمز عبور جدید</label>
                     <input type="password" id="password_confirmation" name="password_confirmation" class="cd-input">
                 </div>
+      <div></div>
+
+                     <div>
+                     <div class="cd-field cd-field-full" style="display:flex; align-items:right; gap:16px;">
+                    <img src="{{ $user->profilePictureUrl() }}" alt="{{ $user->first_name }}"
+                        class="cd-avatar" style="width:64px;height:64px;">
+                </div>
+                        <label class="cd-label" for="profile_picture">عکس پروفایل</label>
+                        <input type="file" id="profile_picture" name="profile_picture" class="cd-input"
+                            accept="image/jpeg,image/png,image/webp">
+                        <p style="font-size:12px;color:#6B7280;margin-top:4px;">
+                            jpg، png یا webp، حداکثر ۲ مگابایت.
+                        </p>
+                        @error('profile_picture')
+                        <p class="cd-error">{{ $message }}</p>
+                        @enderror
+                    </div>
 
             </div>
 
@@ -244,7 +260,7 @@
                     <p class="cd-error">{{ $message }}</p>
                     @enderror
                 </div>
-
+     
                 <button type="submit" class="cd-btn cd-btn-danger" style="margin-top:12px;border:none;cursor:pointer;">
                     حذف همیشگی حساب
                 </button>

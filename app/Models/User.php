@@ -163,4 +163,18 @@ class User extends Authenticatable
 
         $this->delete();
     }
+    
+    public function profilePictureUrl(): string
+{
+    if ($this->profile_picture) {
+        return asset('storage/' . $this->profile_picture);
+    }
+
+    return asset(match (true) {
+        in_array((int) $this->role, [0, 1], true) => 'images/default-pfp.png',
+        in_array((int) $this->role, [2, 3], true) => 'images/expert.png',
+        (int) $this->role === 4 => 'images/company.png',
+        default => 'images/default-pfp.png',
+    });
+}
 }

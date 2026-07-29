@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateExpertProfileRequest;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class ExpertProfileController extends Controller
 {
@@ -21,6 +22,17 @@ class ExpertProfileController extends Controller
 
         if ($request->filled('password')) {
             $userData['password'] = Hash::make($request->password);
+        }
+
+        // همون منطق ProfileController: فقط اگه فایل جدیدی اومده باشه
+        // جایگزین می‌شه، و قبل از جایگزینی، عکسِ قبلی (در صورت وجود) پاک
+        // می‌شه تا فایلِ یتیم روی دیسک نمونه.
+        if ($request->hasFile('profile_picture')) {
+            if ($user->profile_picture) {
+                Storage::disk('public')->delete($user->profile_picture);
+            }
+
+            $userData['profile_picture'] = $request->file('profile_picture')->store('profile-pictures', 'public');
         }
 
         $user->update($userData);

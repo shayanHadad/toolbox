@@ -40,7 +40,9 @@ class MessageController extends Controller
             ->map(fn($m) => $m->senderID == $user->userID ? $m->receiverID : $m->senderID)
             ->unique();
 
-        $personalConversations = User::withTrashed()->whereIn('userID', $personalPartnerIds)
+        // اگه طرفِ مقابل حسابش رو حذف کرده (soft-delete شده)، دیگه توی
+        // لیستِ پیام‌های این کاربر نشون داده نمی‌شه.
+        $personalConversations = User::whereIn('userID', $personalPartnerIds)
             ->get()
             ->map(function (User $partner) use ($user) {
                 $lastMessage = $this->conversationQuery($user, $partner)
@@ -137,7 +139,10 @@ class MessageController extends Controller
             ->map(fn (Message $m) => in_array($m->senderID, $repIds, true) ? $m->receiverID : $m->senderID)
             ->unique();
 
-        $conversations = User::withTrashed()->whereIn('userID', $customerIds)
+        // مشتریِ حذف‌شده (soft-delete شده) دیگه اصلاً نباید توی اینباکسِ
+        // شرکت دیده بشه؛ برخلاف نماینده‌های حذف‌شده‌ی شرکت که تاریخچه‌شون
+        // باید بمونه، اینجا withTrashed به‌کار نمی‌ره.
+        $conversations = User::whereIn('userID', $customerIds)
             ->get()
             ->map(function (User $customer) use ($companyID) {
                 $lastMessage = Message::forCompany($companyID)
@@ -207,12 +212,30 @@ class MessageController extends Controller
 
         abort_unless($partner, 404);
 
+        // مشتریِ حذف‌شده (role=1 که soft-delete شده) دیگه اصلاً نباید توی
+        // چت‌ها نمایش داده بشه، نه برای متخصص نه برای شرکت. این محدودیت
+        // فقط برای مشتری‌هاست؛ نماینده‌ی حذف‌شده‌ی شرکت هم‌چنان طبق طراحیِ
+        // قبلی قابل مشاهده می‌مونه (تاریخچه‌ی مشتری با شرکت حفظ بشه).
+        abort_if((int) $partner->role === 1 && $partner->trashed(), 404);
+
         abort_if($user->userID === $partner->userID, 404);
 
         $companyID = Message::companyIdForUser($user) ?? Message::companyIdForUser($partner);
 
         if ($companyID) {
             $isStaffViewer = in_array((int) $user->role, [3, 4], true);
+
+            // مکالمه‌ی شرکتی فقط بین «یک مشتریِ واقعی (role=1)» و «یک
+            // نماینده‌ی شرکت (role=3/4)» معنی داره. اگه کاربرِ لاگین‌کرده
+            // خودش عضو شرکته، طرفِ مقابل باید واقعاً مشتری باشه؛ وگرنه
+            // (مثلاً یه متخصص، یا نماینده‌ی یه شرکتِ دیگه) نباید بتونه این
+            // صفحه رو با تایپ‌کردن آدرس ببینه.
+            if ($isStaffViewer) {
+                abort_unless((int) $partner->role === 1, 404);
+            } else {
+                abort_unless((int) $user->role === 1 && in_array((int) $partner->role, [3, 4], true), 404);
+            }
+
             $customer = $isStaffViewer ? $partner : $user;
 
             if ($isStaffViewer && (int) $user->role === 3) {
@@ -257,6 +280,12 @@ class MessageController extends Controller
             ]);
         }
 
+        // اینجا چتِ شرکتی نبوده (هیچ‌کدوم عضو شرکت نبودن)، پس باید یه چتِ
+        // شخصیِ مجاز باشه: مشتری با متخصص. دو نفر با role یکسان (مثلاً
+        // دو مشتری) یا هر ترکیب نامعتبر دیگه حتی نباید بتونن تاریخچه‌ی
+        // این «مکالمه» رو با تایپ‌کردن آدرس ببینن.
+        abort_unless($this->canConverse($user, $partner), 404);
+
         $messages = $this->conversationQuery($user, $partner)
             ->with(['sender', 'receiver'])
             ->orderBy('messageID')
@@ -294,6 +323,12 @@ class MessageController extends Controller
         $partner = User::withTrashed()->find($partner);
 
         abort_unless($partner, 404);
+
+        // مشتریِ حذف‌شده دیگه اصلاً طرفِ گفتگو حساب نمی‌شه، چه شخصی چه
+        // شرکتی؛ برخلاف نماینده‌ی حذف‌شده‌ی شرکت که پیامِ جدید هنوز به
+        // اینباکسِ مشترکِ شرکت می‌رسه.
+        abort_if((int) $partner->role === 1 && $partner->trashed(), 404);
+
         abort_if($user->userID === $partner->userID, 404);
 
         // اگر فرستنده یا گیرنده عضو شرکت (role 3/4) باشه، پیام به companyID
@@ -308,17 +343,17 @@ class MessageController extends Controller
         // مشترکِ شرکت می‌ره، نه فقط به همین یک نفر.
         abort_if(! $companyID && $partner->trashed(), 404);
 
-        if ($user->role == 1) {
-            // مشتری می‌تونه به متخصص‌های با پروفایل تکمیل‌شده یا نماینده‌ی یه شرکت پیام بده
-            $isExpert = $partner->role == 2 && $partner->expertDetail;
-            $isCompanyRep = in_array((int) $partner->role, [3, 4], true) && $companyID;
+        // فقط «مشتری (role=1) ↔ متخصص/شرکت (role=2،3،4)» مجازه؛ دو نفر
+        // با role یکسان (دو مشتری، دو متخصص، دو نماینده‌ی شرکت) یا هر
+        // ترکیب نامعتبر دیگه (مثلاً متخصص ↔ شرکت) اصلاً نباید بتونن به
+        // هم پیام بدن.
+        abort_unless($this->canConverse($user, $partner), 404);
 
-            abort_unless($isExpert || $isCompanyRep, 404);
-        } elseif (in_array((int) $user->role, [2, 3, 4], true)) {
-            // متخصص، ادمین شرکت یا مالک شرکت فقط می‌تونه به مشتری‌ها پاسخ بده
-            abort_unless($partner->role == 1, 404);
-        } else {
-            abort(403);
+        // اگه طرفِ متخصصِ این گفتگو هنوز پروفایل تخصصی‌ش رو تکمیل نکرده،
+        // مشتری نمی‌تونه براش پیام *جدید* بفرسته (پاسخِ خودِ متخصص به
+        // مشتری‌های قبلی محدود به این شرط نیست).
+        if ((int) $user->role === 1 && (int) $partner->role === 2) {
+            abort_unless($partner->expertDetail, 404);
         }
 
         $data = $request->validate([
@@ -336,15 +371,15 @@ class MessageController extends Controller
             'companyID'  => $companyID,
         ]);
 
-     if ((int) $user->role === 3) {
-    return redirect()
-        ->route('messages.index')
-        ->with('success', 'پیامت با موفقیت ارسال شد.');
-}
+        if ((int) $user->role === 3) {
+            return redirect()
+                ->route('messages.index')
+                ->with('success', 'پیامت با موفقیت ارسال شد.');
+        }
 
-return redirect()
-    ->route('messages.show', $partner->userID)
-    ->with('success', 'پیامت با موفقیت ارسال شد.');
+        return redirect()
+            ->route('messages.show', $partner->userID)
+            ->with('success', 'پیامت با موفقیت ارسال شد.');
     }
 
     /**
@@ -355,5 +390,23 @@ return redirect()
     private function conversationQuery(User $a, User $b)
     {
         return Message::betweenUsers($a->userID, $b->userID);
+    }
+
+    /**
+     * آیا این دو کاربر اصلاً مجازن با هم گفتگو داشته باشن (چه دیدنِ
+     * تاریخچه، چه فرستادنِ پیامِ جدید)؟ فقط برای چتِ شخصیِ بدون شرکت
+     * به‌کار می‌ره؛ چتِ شرکتی قوانینِ خودش رو در show()/store() داره.
+     *
+     * قانون: فقط مشتری (role=1) با متخصص (role=2) می‌تونه پیام رد و
+     * بدل کنه. دو نفر با role یکسان (دو مشتری، دو متخصص، ...) یا هر
+     * ترکیب دیگه‌ای (مثلاً متخصص با نماینده‌ی شرکت) مجاز نیست.
+     */
+    private function canConverse(User $a, User $b): bool
+    {
+        $roleA = (int) $a->role;
+        $roleB = (int) $b->role;
+
+        return ($roleA === 1 && in_array($roleB, [2, 3, 4], true))
+            || ($roleB === 1 && in_array($roleA, [2, 3, 4], true));
     }
 }

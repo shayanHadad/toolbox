@@ -18,7 +18,7 @@
     {{-- Header --}}
     <div class="cd-header">
         <div class="cd-header-left">
-            <img src="{{ asset('images/expert.png') }}" alt="{{ $user->first_name }}" class="cd-avatar">
+            <img src="{{ $user->profilePictureUrl() }}" alt="{{ $user->first_name }}" class="cd-avatar">
             <div>
                 <p class="cd-eyebrow">{{ $user->username }}</p>
                 <p class="cd-name">{{ $user->first_name }} {{ $user->last_name }}</p>
@@ -133,11 +133,27 @@
         <div class="cd-alert cd-alert-success">{{ session('success') }}</div>
         @endif
 
-        <form action="{{ route('expert.profile.update') }}" method="POST">
+        <form action="{{ route('expert.profile.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PATCH')
 
             <div class="cd-form-grid">
+
+                <div class="cd-field cd-field-full" style="display:flex; align-items:center; gap:16px;">
+                    <img src="{{ $user->profilePictureUrl() }}" alt="{{ $user->first_name }}"
+                        class="cd-avatar" style="width:64px;height:64px;">
+                    <div>
+                        <label class="cd-label" for="profile_picture">عکس پروفایل</label>
+                        <input type="file" id="profile_picture" name="profile_picture" class="cd-input"
+                            accept="image/jpeg,image/png,image/webp">
+                        <p style="font-size:12px;color:var(--text-light);margin-top:4px;">
+                            jpg، png یا webp، حداکثر ۲ مگابایت.
+                        </p>
+                        @error('profile_picture')
+                        <p class="cd-error">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
 
                 <div class="cd-field">
                     <label class="cd-label" for="username">نام کاربری</label>

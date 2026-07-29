@@ -36,7 +36,17 @@ $showAsCompany = $company && (int) auth()->user()->role === 1;
 
             <div class="chat-messages">
                 @forelse ($messages as $message)
-                @php $isMine = $message->senderID == auth()->id(); @endphp
+                @php
+                    // توی چتِ شرکتی، سمتِ «خودمون» یعنی «هر پیامی که هر
+                    // عضوی از تیمِ شرکت (role=3 یا 4) فرستاده»، نه فقط
+                    // پیام‌هایی که خودِ همین کاربرِ لاگین‌کرده فرستاده؛
+                    // وگرنه یه ادمینِ تازه‌اضافه‌شده، پیام‌های قبلیِ بقیه‌ی
+                    // همکارهاش رو هم مثل پیامِ مشتری می‌دید و نمی‌تونست
+                    // پیام‌های واقعیِ مشتری رو از پیام‌های شرکت تشخیص بده.
+                    $isMine = $company && (int) auth()->user()->role !== 1
+                        ? in_array((int) $message->sender->role, [3, 4], true)
+                        : $message->senderID == auth()->id();
+                @endphp
                 <div class="chat-bubble-row {{ $isMine ? 'chat-bubble-row-mine' : '' }}">
                     <div class="chat-bubble {{ $isMine ? 'chat-bubble-mine' : 'chat-bubble-theirs' }}">
                         <p class="chat-bubble-text">{{ $message->message }}</p>
