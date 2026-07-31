@@ -82,6 +82,25 @@
     .cd-error { font-size: 12px; color: var(--danger, #D6455B); margin: 6px 0 0; }
     #profile-form { scroll-margin-top: 96px; }
 
+    /* Profile picture block (standalone, sits above the update form) */
+    .cd-avatar-block {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 16px;
+        margin-bottom: 20px;
+        background: var(--paper, #F3F5F8);
+        border: 1px solid var(--border, #E2E6ED);
+        border-radius: var(--radius-sm, 10px);
+    }
+    .cd-avatar-lg { width: 64px; height: 64px; flex-shrink: 0; }
+    .cd-avatar-info { flex: 1 1 200px; min-width: 0; }
+    .cd-avatar-name { font-size: 15px; font-weight: 700; margin: 0 0 2px; color: var(--ink, #101828); }
+    .cd-avatar-hint { font-size: 12px; color: var(--text-light, #66707F); margin: 0; }
+    .cd-avatar-delete-form { flex-shrink: 0; }
+    .cd-btn-sm { padding: 7px 16px; font-size: 13px; }
+
     /* Danger zone (delete account) */
     .cd-alert-danger { background: rgba(214,69,91,.12); color: var(--danger, #D6455B); }
     .cd-card-danger { border-color: rgba(214,69,91,.35); }

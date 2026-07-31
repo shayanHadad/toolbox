@@ -48,6 +48,11 @@ Route::patch('/dashboard/customer/profile', [ProfileController::class, 'update']
     ->middleware(['auth.custom', 'role:1'])
     ->name('customer.profile.update');
 
+// Delete customer profile picture
+Route::delete('/dashboard/customer/profile/picture', [ProfileController::class, 'destroyPicture'])
+    ->middleware(['auth.custom', 'role:1'])
+    ->name('customer.profile.picture.destroy');
+
 ////////////////////////////////////////////////// EXPERT ////////////////////////////////////////////////////////////////
 // Expert dashboard
 Route::get('/dashboard/expert', ExpertDashboardController::class)
@@ -58,6 +63,11 @@ Route::get('/dashboard/expert', ExpertDashboardController::class)
 Route::patch('/dashboard/expert/profile', [ExpertProfileController::class, 'update'])
     ->middleware(['auth.custom', 'role:2'])
     ->name('expert.profile.update');
+
+// Delete expert profile picture
+Route::delete('/dashboard/expert/profile/picture', [ExpertProfileController::class, 'destroyPicture'])
+    ->middleware(['auth.custom', 'role:2'])
+    ->name('expert.profile.picture.destroy');
 
 ////////////////////////////////////////////////// COMPANY ////////////////////////////////////////////////////////////////
 // Company dashboard

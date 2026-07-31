@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Models\Order;
@@ -9,27 +9,23 @@ use Illuminate\Http\Request;
 
 class ExpertController extends Controller
 {
-    /**
-     * لیست عمومی متخصص‌ها با قابلیت سرچ، فیلتر بر اساس دسته‌بندی و مرتب‌سازی.
-     */
+    // List of  experts with search and filtering options
     public function index(Request $request)
     {
         $categories = WorkCategory::orderBy('category_name')->get();
 
         $query = User::query()
-            ->where('role', 2) // فقط اکسپرت‌ها
-            // فقط کسانی که واقعاً پروفایل تخصصی‌شون رو تکمیل کردن نشون داده بشن
-            ->whereHas('expertDetail')
+            ->where('role', 2) // Only experts
+            ->whereHas('expertDetail') // Only experts who completed their profile
             ->with(['expertDetail.category'])
-            // میانگین امتیاز از روی سفارش‌های تمام‌شده‌ای که rating دارن
-            ->withAvg(['providerOrders as rating_avg' => function ($q) {
+            ->withAvg(['providerOrders as rating_avg' => function ($q) { // Calculate the rating avg
                 $q->whereNotNull('rating');
             }], 'rating')
-            ->withCount(['providerOrders as orders_count' => function ($q) {
+            ->withCount(['providerOrders as orders_count' => function ($q) { // Count the finished orders
                 $q->where('status', Order::STATUS_FINISHED);
             }]);
 
-        // --- سرچ بار: توی نام، نام کاربری و توضیحات پروفایل ---
+        // Search bar with name - username - profile detalis
         if ($request->filled('q')) {
             $search = trim($request->string('q'));
 
@@ -43,7 +39,7 @@ class ExpertController extends Controller
             });
         }
 
-        // --- فیلتر دسته‌بندی (بر اساس slug ستون url، هماهنگ با بقیه‌ی سایت) ---
+        // Category filtering
         if ($request->filled('category')) {
             $categorySlug = $request->string('category');
 
@@ -52,16 +48,18 @@ class ExpertController extends Controller
             });
         }
 
-        // --- مرتب‌سازی ---
+        // Sorting
         match ($request->input('sort')) {
             'rating' => $query->orderByDesc('rating_avg'),
             'orders' => $query->orderByDesc('orders_count'),
-            default  => $query->orderByDesc('userID'), // جدیدترین‌ها
+            default  => $query->orderByDesc('userID'), // Newest
         };
 
+
+        // Show 9 results in each page
         $experts = $query->paginate(9)->withQueryString();
 
-        // آی‌دی متخصص‌هایی که کاربر لاگین‌کرده (در صورتی که مشتری باشه) بوکمارک کرده
+        // Experts that logged in user has bookmarked
         $bookmarkedIds = [];
         if (auth()->check() && auth()->user()->role == 1) {
             $bookmarkedIds = auth()->user()
@@ -70,6 +68,7 @@ class ExpertController extends Controller
                 ->all();
         }
 
+        // Show the experts view with fetched data
         return view('experts.index', [
             'experts'       => $experts,
             'categories'    => $categories,
@@ -77,9 +76,7 @@ class ExpertController extends Controller
         ]);
     }
 
-    /**
-     * پروفایل عمومی یک متخصص.
-     */
+    // Expert public profile
     public function show(User $expert)
     {
         abort_unless($expert->role == 2 && $expert->expertDetail, 404);
@@ -89,6 +86,7 @@ class ExpertController extends Controller
             $q->whereNotNull('rating');
         }], 'rating');
 
+        // Expert reviews
         $reviews = $expert->providerOrders()
             ->whereNotNull('comment')
             ->whereNotNull('rating')

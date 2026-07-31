@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Middleware;
 
 use Closure;
@@ -20,6 +20,7 @@ class EnsureUserIsAuthenticated
                 ->with('error', 'برای دسترسی به این صفحه باید وارد شوید.');
         }
 
+        // Continue to wanted controller
         return $next($request);
     }
 }

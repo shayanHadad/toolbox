@@ -1,25 +1,27 @@
 <?php
-
+//--//
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 class LoginRequest extends FormRequest
 {
+    // All users are authorized
     public function authorize(): bool
     {
         return true;
     }
 
+    // Form rules
     public function rules(): array
     {
         return [
-            // یک فیلد واحد که هم می‌تونه نام کاربری باشه هم شماره تماس
             'login'    => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
 
+    // Error messages
     public function messages(): array
     {
         return [
@@ -28,12 +30,15 @@ class LoginRequest extends FormRequest
         ];
     }
 
-    /**
-     * تشخیص اینکه مقدار وارد شده شماره تماس هست یا نام کاربری،
-     * و برگردوندن ستون مناسب برای Auth::attempt.
-     */
+    // Determine if the login input is username OR‌ contact_number
     public function loginField(): string
     {
-        return preg_match('/^[0-9]+$/', $this->input('login')) ? 'contact_number' : 'username';
+        $login = $this->input('login');
+
+        if (preg_match('/^[0-9]+$/', $login)) {
+            return 'contact_number';
+        }
+
+        return 'username';
     }
 }

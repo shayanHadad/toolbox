@@ -1,16 +1,18 @@
 <?php
-
+//--//
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
 class RegisterRequest extends FormRequest
 {
+    // All users can send a register request
     public function authorize(): bool
     {
         return true;
     }
 
+    // Validating the form inputs from user
     public function rules(): array
     {
         return [
@@ -54,12 +56,13 @@ class RegisterRequest extends FormRequest
             'password' => [
                 'required',
                 'min:8',
-                'regex:/^[A-Za-z0-9!@#$%^&*()_+\-=]+$/'
+                'regex:/^[A-Za-z0-9!@#$%^&*()_+\-=]+$/' // Upper and lower case letters + numbrs + symbols
             ],
 
         ];
     }
 
+    // Setting an error message for each situation
     public function messages(): array
     {
         return [

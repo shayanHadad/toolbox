@@ -1,10 +1,10 @@
 <?php
-
+//--//
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable; // So laravel can (login | logout | ...)
+use Illuminate\Notifications\Notifiable; // If user needed to be notified
 
 class User extends Authenticatable
 {
@@ -30,11 +30,13 @@ class User extends Authenticatable
         'company_admin_id',
     ];
 
+    // This fields will not be shown in json
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    // Casting the types
     protected function casts(): array
     {
         return [
@@ -43,6 +45,7 @@ class User extends Authenticatable
         ];
     }
 
+    ////////////////////////////////////// Relationships ////////////////////////////////////////////////
     public function expertDetail()
     {
         return $this->hasOne(ExpertDetail::class, 'userID', 'userID');
@@ -108,6 +111,7 @@ class User extends Authenticatable
         return $this->hasMany(Bookmark::class, 'customerID', 'userID');
     }
 
+    // Connecting to pivot table
     public function bookmarkedProviders()
     {
         return $this->belongsToMany(
@@ -123,6 +127,7 @@ class User extends Authenticatable
         return $this->hasMany(CompanyBookmark::class, 'customerID', 'userID');
     }
 
+    // Connecting to pivot table
     public function bookmarkedCompanies()
     {
         return $this->belongsToMany(
@@ -133,6 +138,7 @@ class User extends Authenticatable
         );
     }
 
+    // For redirecting to user dashboard based on role
     public function dashboardRoute(): string
     {
         return match ((int) $this->role) {
@@ -144,18 +150,10 @@ class User extends Authenticatable
         };
     }
 
-    /**
-     * حذفِ (نرمِ) این کاربر، بعد از مخدوش‌کردنِ username و contact_number.
-     *
-     * چون این دو ستون یونیک‌ان و ردیفِ soft-deleted فیزیکاً توی جدول
-     * باقی می‌مونه، بدون این کار، کسیِ دیگه دیگه هیچ‌وقت نمی‌تونه همون
-     * نام‌کاربری یا شماره تماس رو دوباره ثبت‌نام کنه. با اضافه‌کردنِ
-     * پسوندِ «_deleted_{userID}»، مقدار اصلی آزاد می‌شه برای استفاده‌ی
-     * بعدی، ولی خودِ رکورد (و رابطه‌اش با پیام‌ها/سفارش‌های قدیمی) دست‌
-     * نخورده می‌مونه.
-     */
+    // Soft deleting the user
     public function anonymizeAndDelete(): void
     {
+        // Add "deleted" to username and phone to free them up.
         $this->forceFill([
             'username'       => $this->username . '_deleted_' . $this->userID,
             'contact_number' => $this->contact_number . '_deleted_' . $this->userID,
@@ -163,18 +161,19 @@ class User extends Authenticatable
 
         $this->delete();
     }
-    
-    public function profilePictureUrl(): string
-{
-    if ($this->profile_picture) {
-        return asset('storage/' . $this->profile_picture);
-    }
 
-    return asset(match (true) {
-        in_array((int) $this->role, [0, 1], true) => 'images/default-pfp.png',
-        in_array((int) $this->role, [2, 3], true) => 'images/expert.png',
-        (int) $this->role === 4 => 'images/company.png',
-        default => 'images/default-pfp.png',
-    });
-}
+    // Returning the profile picture url if user had any | return the default if not.
+    public function profilePictureUrl(): string
+    {
+        if ($this->profile_picture) {
+            return asset('storage/' . $this->profile_picture);
+        }
+
+        return asset(match (true) {
+            in_array((int) $this->role, [0, 1], true) => 'images/default-pfp.png',
+            in_array((int) $this->role, [2, 3], true) => 'images/expert.png',
+            (int) $this->role === 4 => 'images/company.png',
+            default => 'images/default-pfp.png',
+        });
+    }
 }

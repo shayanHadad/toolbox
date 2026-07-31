@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -42,5 +43,22 @@ class ProfileController extends Controller
         $user->update($data);
 
         return back()->with('success', 'اطلاعات پروفایل با موفقیت به‌روزرسانی شد.');
+    }
+
+    // فقط اگه کاربر واقعاً عکسی توی دیتابیس ثبت کرده باشه چیزی حذف می‌شه؛
+    // در غیر این صورت هیچ کاری انجام نمی‌شه (نه خطا، نه درخواست به دیسک).
+    public function destroyPicture(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
+
+            $user->update(['profile_picture' => null]);
+
+            return back()->with('success', 'عکس پروفایل با موفقیت حذف شد.');
+        }
+
+        return back();
     }
 }

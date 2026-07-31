@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Models\Order;
@@ -10,14 +10,16 @@ class HomeController extends Controller
 {
     public function fetchData()
     {
-        $categories = WorkCategory::orderBy('category_name')->take(7)->get();
+        // Fetch all work categories
+        $categories = WorkCategory::orderBy('category_name')->get();
 
+        // Fetch 8 newest comments and ratings for orders with expert detail + category
         $comments = Order::query()
             ->whereNotNull('comment')
             ->whereNotNull('rating')
             ->with(['customer', 'provider.expertDetail.category'])
             ->latest('order_date')
-            ->take(6)
+            ->take(8)
             ->get();
 
         return view('home', compact('categories', 'comments'));

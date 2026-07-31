@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateExpertProfileRequest;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -47,5 +48,22 @@ class ExpertProfileController extends Controller
         );
 
         return back()->with('success', 'اطلاعات پروفایل با موفقیت به‌روزرسانی شد.');
+    }
+
+    // همون منطق ProfileController: فقط وقتی عکسی توی دیتابیس ثبت شده
+    // باشه حذفش می‌کنیم.
+    public function destroyPicture(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
+
+            $user->update(['profile_picture' => null]);
+
+            return back()->with('success', 'عکس پروفایل با موفقیت حذف شد.');
+        }
+
+        return back();
     }
 }

@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Models\Order;
@@ -9,45 +9,44 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
-    /**
-     * صفحه‌ی یک دسته‌بندی خدمات: تمام متخصص‌ها و شرکت‌های همون دسته، کنار هم.
-     */
+    // Showing all experts and companies from the same category
     public function show(Request $request, WorkCategory $category)
     {
-        // --- متخصص‌های این دسته ---
+        // Fetch experts
         $experts = User::query()
-            ->where('role', 2)
-            ->whereHas('expertDetail', function ($q) use ($category) {
-                $q->where('categoryID', $category->categoryID);
+            ->where('role', 2) // Only experts
+            ->whereHas('expertDetail', function ($query) use ($category) {
+                $query->where('categoryID', $category->categoryID); // With same category ID
             })
-            ->with('expertDetail.category')
-            ->withAvg(['providerOrders as rating_avg' => function ($q) {
-                $q->whereNotNull('rating');
-            }], 'rating')
-            ->withCount(['providerOrders as orders_count' => function ($q) {
-                $q->where('status', Order::STATUS_FINISHED);
-            }])
+            ->with('expertDetail.category') // Get the expert details and category details
+            ->withAvg(['providerOrders as rating_avg' => function ($query) {
+                $query->whereNotNull('rating');
+            }], 'rating') // Calculate the rating avg of the expert
+            ->withCount(['providerOrders as orders_count' => function ($query) {
+                $query->where('status', Order::STATUS_FINISHED);
+            }]) // Count the number of finished orders
             ->get();
 
-        // --- شرکت‌های این دسته ---
+        // Fetch companies
         $companies = $category->companies()
-            ->with(['categories', 'admins.users'])
-            ->withAvg(['orders as rating_avg' => function ($q) {
+            ->with(['categories', 'admins.users']) // Load the relation
+            ->withAvg(['orders as rating_avg' => function ($q) { // Calculate the rating avg
                 $q->whereNotNull('rating');
             }], 'rating')
-            ->withCount(['orders as orders_count' => function ($q) {
+            ->withCount(['orders as orders_count' => function ($q) { // Count the number of finished orders
                 $q->where('status', Order::STATUS_FINISHED);
             }])
             ->get();
 
-        // --- برای کاربر مشتری لاگین‌کرده: چه چیزهایی رو از قبل بوکمارک کرده ---
+        // If user-role = 1 then:
         $bookmarkedExpertIds  = [];
         $bookmarkedCompanyIds = [];
 
+        // Make sure the user is logged in with role = 1
         if (auth()->check() && auth()->user()->role == 1) {
             $bookmarkedExpertIds = auth()->user()
                 ->bookmarkedProviders()
-                ->pluck('users.userID')
+                ->pluck('users.userID') // Only returns userID column
                 ->all();
 
             $bookmarkedCompanyIds = auth()->user()
@@ -56,6 +55,7 @@ class CategoryController extends Controller
                 ->all();
         }
 
+        // Send the fetched data to the view
         return view('categories.show', [
             'category'             => $category,
             'experts'              => $experts,

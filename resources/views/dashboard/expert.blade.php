@@ -124,7 +124,7 @@
     </div>
 
     {{-- Profile edit form --}}
-    <div class="cd-card" id="profile-form" style="margin-top:290px;">
+    <div class="cd-card" id="profile-form">
         <div class="cd-card-head">
             <p class="cd-card-title">ویرایش اطلاعات پروفایل</p>
         </div>
@@ -133,26 +133,41 @@
         <div class="cd-alert cd-alert-success">{{ session('success') }}</div>
         @endif
 
+        {{-- Profile picture: kept as its own form, outside the update form below, so the
+             DELETE request always goes to its own route instead of being captured by the
+             PATCH update form (nested <form> elements are invalid HTML and browsers will
+             submit the outer form's action/method instead of the inner one). --}}
+        <div class="cd-avatar-block">
+            <img src="{{ $user->profilePictureUrl() }}" alt="{{ $user->first_name }}" class="cd-avatar cd-avatar-lg">
+            <div class="cd-avatar-info">
+                <p class="cd-avatar-name">{{ $user->first_name }} {{ $user->last_name }}</p>
+                <p class="cd-avatar-hint">jpg، png یا webp، حداکثر ۲ مگابایت. برای تغییر عکس، فایل جدید را در فرم پایین انتخاب کنید.</p>
+            </div>
+            @if ($user->profile_picture)
+            <form action="{{ route('expert.profile.picture.destroy') }}" method="POST" class="cd-avatar-delete-form"
+                onsubmit="return confirm('مطمئنی می‌خوای عکس پروفایلت رو حذف کنی؟');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="cd-btn cd-btn-danger cd-btn-sm" style="border:none;cursor:pointer;">
+                    حذف عکس
+                </button>
+            </form>
+            @endif
+        </div>
+
         <form action="{{ route('expert.profile.update') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PATCH')
 
             <div class="cd-form-grid">
 
-                <div class="cd-field cd-field-full" style="display:flex; align-items:center; gap:16px;">
-                    <img src="{{ $user->profilePictureUrl() }}" alt="{{ $user->first_name }}"
-                        class="cd-avatar" style="width:64px;height:64px;">
-                    <div>
-                        <label class="cd-label" for="profile_picture">عکس پروفایل</label>
-                        <input type="file" id="profile_picture" name="profile_picture" class="cd-input"
-                            accept="image/jpeg,image/png,image/webp">
-                        <p style="font-size:12px;color:var(--text-light);margin-top:4px;">
-                            jpg، png یا webp، حداکثر ۲ مگابایت.
-                        </p>
-                        @error('profile_picture')
-                        <p class="cd-error">{{ $message }}</p>
-                        @enderror
-                    </div>
+                <div class="cd-field">
+                    <label class="cd-label" for="profile_picture">عکس پروفایل جدید</label>
+                    <input type="file" id="profile_picture" name="profile_picture" class="cd-input"
+                        accept="image/jpeg,image/png,image/webp">
+                    @error('profile_picture')
+                    <p class="cd-error">{{ $message }}</p>
+                    @enderror
                 </div>
 
                 <div class="cd-field">
