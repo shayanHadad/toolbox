@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,9 +8,6 @@ class UpdateCompanyProfileRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // فقط مالک شرکت (role=4) اجازه‌ی ادیت اطلاعات شرکت رو داره؛
-        // ادمین‌های شرکت (role=3) اصلاً به این فرم دسترسی ندارن.
-        // این محدودیت روی روت هم با میدلور role:4 اعمال شده.
         return (int) $this->user()?->role === 4;
     }
 

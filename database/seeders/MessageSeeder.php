@@ -28,8 +28,6 @@ class MessageSeeder extends Seeder
             ->filter(fn (User $u) => $u->companyAdmin?->companyID)
             ->groupBy(fn (User $u) => $u->companyAdmin->companyID);
 
-        // توجه: جدول messages فقط created_at داره نه updated_at، برای همین
-        // مستقیم با DB::table() اینسرت می‌کنیم (نه Message::create()).
 
         $this->seedOrderConversations($faker);
         $this->seedColdInquiries($faker);
@@ -39,7 +37,6 @@ class MessageSeeder extends Seeder
             return;
         }
 
-        // اینسرت دسته‌ای برای جلوگیری از کوئری‌های زیاد روی حجم بالا
         foreach (array_chunk($this->rows, 500) as $chunk) {
             DB::table('messages')->insert($chunk);
         }
@@ -47,11 +44,6 @@ class MessageSeeder extends Seeder
         $this->command->info('پیام‌ها ساخته شدند (' . count($this->rows) . ' مورد).');
     }
 
-    /**
-     * برای هر سفارش (به‌جز چندتاش که عمداً خالی می‌مونن)، یه مکالمه‌ی
-     * متناسب با وضعیت همون سفارش بین مشتری و طرف مقابلش (اکسپرت یا
-     * یکی از اعضای شرکت) می‌سازیم.
-     */
     private function seedOrderConversations($faker): void
     {
         $orders = Order::all();
@@ -61,8 +53,6 @@ class MessageSeeder extends Seeder
         }
 
         foreach ($orders as $order) {
-            // حدود ۲۰٪ از سفارش‌ها اصلاً پیامی رد و بدل نشده، طبیعیه که
-            // بعضی مشتری‌ها بدون گفتگوی قبلی مستقیم سفارش ثبت کرده باشن.
             if ($faker->boolean(20)) {
                 continue;
             }
@@ -87,10 +77,6 @@ class MessageSeeder extends Seeder
         }
     }
 
-    /**
-     * چند مکالمه‌ی «سرد» و مستقل از سفارش، برای شبیه‌سازی مشتری‌هایی که
-     * قبل از ثبت سفارش فقط دارن استعلام قیمت/وقت می‌گیرن.
-     */
     private function seedColdInquiries($faker): void
     {
         $customers = User::where('role', 1)->get();
@@ -136,9 +122,6 @@ class MessageSeeder extends Seeder
         }
     }
 
-    /**
-     * دنباله‌ی [کی، نوع‌پیام] رو بر اساس وضعیت سفارش می‌سازه.
-     */
     private function buildSequence($faker, int $status, bool $wasReviewed): array
     {
         return match ($status) {
@@ -176,15 +159,6 @@ class MessageSeeder extends Seeder
         };
     }
 
-    /**
-     * یه دنباله از [نقش، نوع‌پیام] رو به پیام‌های واقعی با متن، فرستنده،
-     * گیرنده، زمان و وضعیت تبدیل می‌کنه و به لیست کلی اضافه می‌کنه.
-     *
-     * $partnerPool: کاربر(های) احتمالیِ «طرف مقابل». برای اکسپرت همیشه
-     * یک نفره؛ برای شرکت، هر پیامِ سمتِ partner می‌تونه از یکی از اعضای
-     * تیم (owner یا هر ادمین) باشه — دقیقاً شبیه یک اینباکس مشترک واقعی
-     * که همکارهای مختلف بهش جواب می‌دن.
-     */
     private function appendConversation($faker, User $customer, $partnerPool, ?int $companyID, array $sequence): void
     {
         if (empty($sequence)) {
@@ -209,8 +183,6 @@ class MessageSeeder extends Seeder
         $lastIndex = count($sequence) - 1;
 
         foreach ($sequence as $index => [$role, $type]) {
-            // هر بار که نوبتِ «طرف مقابل»ه، یکی از اعضای تیم شرکت رو (تصادفی)
-            // انتخاب می‌کنیم؛ برای اکسپرت که فقط یه نفره همیشه همون یکیه.
             $partner = $partnerPool->count() > 1 ? $partnerPool->random() : $partnerPool->first();
 
             $sender   = $role === 'customer' ? $customer : $partner;
@@ -218,11 +190,8 @@ class MessageSeeder extends Seeder
 
             $timestamp = $timestamp->copy()->addMinutes($faker->numberBetween(15, 600));
 
-            // اکثر پیام‌های قدیمی‌تر خونده شدن؛ فقط آخرین پیامِ مکالمه ممکنه
-            // هنوز خونده نشده باشه (برای واقعی بودن نشان «پیام خوانده‌نشده»).
             $status = ($index === $lastIndex && $faker->boolean(35)) ? 0 : 1;
 
-            // یه درصد خیلی کم هم برای پوشش وضعیت «ارسال نشده» شبیه‌سازی می‌شه.
             if ($faker->boolean(3)) {
                 $status = -1;
             }

@@ -6,15 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * توجه: نوع companyID را unsignedBigInteger فرض کرده‌ایم چون معمولاً
-     * ستون‌های primary-key در Laravel از این نوع هستند. اگر ستون
-     * companies.companyID از نوع دیگری (مثلاً unsignedInteger) است،
-     * این migration را متناسب با آن اصلاح کنید وگرنه در ایجاد
-     * foreign key با خطا مواجه می‌شوید.
-     */
     public function up(): void
     {
         Schema::table('messages', function (Blueprint $table) {
@@ -27,9 +18,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('messages', function (Blueprint $table) {

@@ -18,22 +18,16 @@ class UserSeeder extends Seeder
         $faker = FakerFactory::create('fa_IR');
         $hashedPassword = Hash::make('Password123');
 
-        // --- ۱ کاربر ادمین کل (role 0)، دقیقاً یک نفر ---
         $this->makeUser($faker, $hashedPassword, 0);
 
-        // --- ۷۰ مشتری (role 1) ---
         for ($i = 0; $i < 70; $i++) {
             $this->makeUser($faker, $hashedPassword, 1);
         }
 
-        // --- ۴۰ اکسپرت (role 2) ---
         for ($i = 0; $i < 40; $i++) {
             $this->makeUser($faker, $hashedPassword, 2);
         }
 
-        // --- نماینده‌های شرکت‌ها ---
-        // به ازای هر شرکت، اولین ردیف company_admins به «مالک شرکت» (role=4)
-        // اختصاص پیدا می‌کنه و بقیه‌ی ردیف‌ها (در صورت وجود) به «ادمین شرکت» (role=3).
         CompanyAdmin::orderBy('companyID')->orderBy('adminID')
             ->get()
             ->groupBy('companyID')
@@ -62,10 +56,6 @@ class UserSeeder extends Seeder
         ]);
     }
 
-    /**
-     * username لاتین و خواناست (مثل «reza.karimi42»)، مستقل از نام فارسی
-     * نمایشی کاربر — چون طبق قانون alpha_dash نام فارسی توش جواب نمی‌ده.
-     */
     private function makeUsername($faker): string
     {
         do {

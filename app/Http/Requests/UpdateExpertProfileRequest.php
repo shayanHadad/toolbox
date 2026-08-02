@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -48,7 +48,6 @@ class UpdateExpertProfileRequest extends FormRequest
                 'regex:/^[A-Za-z0-9!@#$%^&*()_+\-=]+$/',
                 'confirmed',
             ],
-            // همون سیاست‌های امنیتیِ آپلود که توی UpdateProfileRequest هست.
             'profile_picture' => [
                 'nullable',
                 'image',

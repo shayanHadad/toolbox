@@ -2,19 +2,8 @@
 
 namespace Database\Seeders\Support;
 
-/**
- * بانک متن‌های دستی و واقعی‌نما (فارسی) که چند تا سیدر ازش استفاده می‌کنن:
- * بیوگرافی/رزومه‌ی اکسپرت‌ها، توضیحات شرکت‌ها، متن درخواست سفارش‌ها،
- * نظرات مشتری‌ها بعد از اتمام سفارش و پیام‌های چت.
- *
- * همه‌چیز دستی نوشته شده (نه Faker::realText) تا شبیه متنی باشه که
- * یه آدم واقعی تایپ کرده، نه یه رشته‌ی تصادفی از کلمات.
- */
 class SeedContent
 {
-    /**
-     * بیو کوتاه اکسپرت به ازای هر دسته‌بندی (کلید = ستون url در work_categories).
-     */
     public static function expertBios(): array
     {
         return [
@@ -63,9 +52,6 @@ class SeedContent
         ];
     }
 
-    /**
-     * رزومه‌ی کمی مفصل‌تر برای هر دسته‌بندی.
-     */
     public static function expertResumes(): array
     {
         return [
@@ -107,9 +93,6 @@ class SeedContent
         ];
     }
 
-    /**
-     * متن «details» که مشتری موقع ثبت سفارش می‌نویسه، به تفکیک دسته‌بندی.
-     */
     public static function orderDetails(): array
     {
         return [
@@ -170,9 +153,6 @@ class SeedContent
         ];
     }
 
-    /**
-     * نظر مشتری بعد از اتمام سفارش، بر اساس امتیاز (rating).
-     */
     public static function reviewComments(): array
     {
         return [
@@ -209,10 +189,6 @@ class SeedContent
         ];
     }
 
-    /**
-     * متن‌های چت: پیام اول مشتری، جواب طرف مقابل، ادامه‌ی مکالمه و
-     * تشکر بعد از اتمام کار. برای ساخت مکالمه‌های چندپیامی به کار می‌رن.
-     */
     public static function chatOpeners(): array
     {
         return [
@@ -289,10 +265,6 @@ class SeedContent
         ];
     }
 
-    /**
-     * نام و توضیحات شرکت‌ها (به‌جای Faker::company و Faker::realText).
-     * هر آیتم مستقل و آماده‌ی درج مستقیمه.
-     */
     public static function companies(): array
     {
         return [
@@ -321,10 +293,6 @@ class SeedContent
         ];
     }
 
-    /**
-     * نام و نام‌خانوادگی لاتین برای ساخت username های خوانا و انسانی
-     * (مستقل از نام فارسی‌ای که برای first_name/last_name استفاده می‌شه).
-     */
     public static function latinFirstNames(): array
     {
         return ['ali', 'reza', 'sara', 'mina', 'hossein', 'fatemeh', 'amir', 'niloofar', 'mohammad', 'zahra', 'arash', 'leila', 'kaveh', 'shirin', 'babak', 'elham', 'farhad', 'roya', 'saeed', 'mahsa', 'navid', 'parisa', 'omid', 'yasaman', 'hamed', 'nazanin', 'kian', 'setareh', 'pouya', 'maryam', 'sina', 'atefeh', 'ehsan', 'golnaz', 'milad', 'azadeh', 'ramin', 'sepideh', 'bahram', 'nasrin'];

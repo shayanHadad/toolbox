@@ -9,7 +9,6 @@ class WorkCategorySeeder extends Seeder
 {
     public function run(): void
     {
-        // اینجا دیتای دلخواه خودت رو بذار. هر آیتم یه دسته‌بندیه.
         $categories = [
             ['category_name' => 'تمیزکاری',   'url' => 'cleaning'],
             ['category_name' => 'ساختمان',    'url' => 'building'],
@@ -22,8 +21,6 @@ class WorkCategorySeeder extends Seeder
 
 
         foreach ($categories as $category) {
-            // firstOrCreate یعنی اگه از قبل با همین اسم وجود داشت،
-            // دوباره ساخته نمیشه و دیتا تکراری نمی‌خوره اگه seeder چندبار اجرا بشه.
             WorkCategory::firstOrCreate(
                 ['category_name' => $category['category_name']],
                 ['url' => $category['url']]

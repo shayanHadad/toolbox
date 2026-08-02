@@ -27,9 +27,6 @@ class OrderSeeder extends Seeder
         $detailsBank = SeedContent::orderDetails();
         $reviewBank  = SeedContent::reviewComments();
 
-        // توزیع وضعیت‌ها (کدهای عددیِ Order::STATUS_*)، شبیه به چیزی که توی
-        // یه سایت واقعی می‌بینیم: بیشترشون تمام‌شده، بعد در انتظار/در حال
-        // انجام، و یه بخش کمتر رد/لغوشده.
         $statusWeights = [
             Order::STATUS_FINISHED    => 42,
             Order::STATUS_WAITING     => 16,
@@ -41,8 +38,6 @@ class OrderSeeder extends Seeder
         for ($i = 0; $i < 300; $i++) {
             $status = $this->weightedRandom($faker, $statusWeights);
 
-            // نصف سفارش‌ها برای یه اکسپرت، نصف دیگه برای یه شرکت
-            // (دقیقاً طبق منطق OrderController: یا providerID پره یا companyID، نه هردو).
             $forCompany = $companies->isNotEmpty() && $faker->boolean(50);
 
             $customerId = $faker->randomElement($customers);
@@ -66,23 +61,18 @@ class OrderSeeder extends Seeder
             $details = $faker->randomElement($detailsPool);
 
             $orderDate = match ($status) {
-                // در انتظار/در حال انجام: تاریخ در آینده، وگرنه با اولین بار
-                // بازدید از داشبورد، Order::autoFinishPastOrders() خودکار
-                // می‌بردتشون روی «تمام‌شده».
                 Order::STATUS_WAITING, Order::STATUS_IN_PROGRESS
-                    => $faker->dateTimeBetween('+1 days', '+14 days'),
+                => $faker->dateTimeBetween('+1 days', '+14 days'),
                 Order::STATUS_FINISHED
-                    => $faker->dateTimeBetween('-6 months', '-1 days'),
+                => $faker->dateTimeBetween('-6 months', '-1 days'),
                 default // rejected, cancelled
-                    => $faker->dateTimeBetween('-2 months', '+10 days'),
+                => $faker->dateTimeBetween('-2 months', '+10 days'),
             };
 
             $rating  = null;
             $comment = null;
 
             if ($status === Order::STATUS_FINISHED && $faker->boolean(70)) {
-                // ۷۰٪ سفارش‌های تمام‌شده از قبل نظر گرفتن، بقیه منتظر نظر مشتری می‌مونن
-                // (برای تست جریان «نیاز به بررسی» یعنی Order::needsReview()).
                 $rating = $faker->randomElement([5, 5, 5, 4, 4, 3, 2, 1]);
                 $comment = $faker->randomElement($reviewBank[$rating]);
             }
@@ -102,11 +92,6 @@ class OrderSeeder extends Seeder
         $this->command->info('سفارش‌ها ساخته شدند.');
     }
 
-    /**
-     * انتخاب تصادفیِ وزن‌دار از یه آرایه‌ی [عدد وضعیت => وزن].
-     * چون Order::STATUS_* حالا int هستن (نه رشته)، این متد هم باید int
-     * برگردونه، وگرنه توی match(strict ===) با ثابت‌های Order جور درنمیاد.
-     */
     private function weightedRandom($faker, array $weights): int
     {
         $total = array_sum($weights);

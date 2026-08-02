@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,8 +8,6 @@ class StoreCompanyAdminRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // فقط مالک شرکت (role=4) اجازه‌ی اضافه‌کردن ادمین جدید برای شرکتش رو داره.
-        // این محدودیت روی روت هم با میدلور role:4 اعمال شده.
         return (int) $this->user()?->role === 4;
     }
 

@@ -8,7 +8,6 @@
         @endif
 
         @php
-            // این عدد باید با ->onEachSide(...) که موقع صدا زدن links() پاس می‌دی هماهنگ باشه
             $onEachSide = 1;
             $start = max(1, $paginator->currentPage() - $onEachSide);
             $end   = min($paginator->lastPage(), $paginator->currentPage() + $onEachSide);

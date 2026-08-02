@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,16 +8,11 @@ class UpdateCompanyAdminRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // مجوز اصلی (مالک بودن + تعلق ادمین به همون شرکت) توی کنترلر
-        // چک می‌شه، چون به رکورد company_admins نیاز داره که فقط توی
-        // کنترلر در دسترسه. اینجا فقط نقش کاربر رو بررسی می‌کنیم.
         return (int) $this->user()?->role === 4;
     }
 
     public function rules(): array
     {
-        // یوزرآیدی خود ادمین در حال ویرایش از روی روت گرفته می‌شه تا
-        // بشه توی unique اونو از قلم انداخت (خودش نباید با خودش تداخل کنه).
         $admin = $this->route('admin');
 
         return [
@@ -52,7 +47,6 @@ class UpdateCompanyAdminRequest extends FormRequest
                 'after:1900-01-01',
             ],
 
-            // موقع ویرایش، رمز اختیاریه؛ اگه خالی بمونه رمز قبلی دست‌نخورده می‌مونه.
             'password' => [
                 'nullable',
                 'min:8',

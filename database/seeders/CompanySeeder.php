@@ -21,13 +21,8 @@ class CompanySeeder extends Seeder
                 'founding_date' => $faker->dateTimeBetween('-20 years', '-1 years')->format('Y-m-d'),
             ]);
 
-            // هر شرکت حتماً یک ردیف company_admins برای مالک (role=4) داره.
-            // ترتیب ساخت مهمه: اولین ردیفِ هر شرکت توسط UserSeeder به‌عنوان
-            // «مالک» در نظر گرفته می‌شه.
             CompanyAdmin::create(['companyID' => $company->companyID]);
 
-            // بیشتر شرکت‌ها حداقل یک ادمین اضافه هم دارن؛ بعضی‌ها حتی دوتا،
-            // شبیه یه تیم واقعی که چندنفره پاسخگوی مشتری‌هاست.
             $extraAdmins = $faker->randomElement([0, 1, 1, 1, 2]);
 
             for ($i = 0; $i < $extraAdmins; $i++) {

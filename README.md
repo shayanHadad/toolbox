@@ -1,58 +1,99 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Toolbox
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Toolbox is a Laravel web app I built to connect customers with independent experts and companies who offer professional services. Think of it as a small marketplace: customers browse services by category, check out experts and companies, place orders, and chat with them directly — while experts, companies, and admins each get their own dashboard to manage things on their end.
 
-## About Laravel
+I built this as a way to dig deeper into Laravel — working through role-based access, custom authentication, and a full order/messaging workflow from scratch.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## What it does
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Five user roles**, each with a different experience: Admin, Customer, Expert, Company Owner, and Company Admin
+- **Browse by category** — services are organized so customers can find what they need
+- **Expert & company profiles**, with the option to bookmark favorites
+- **Orders** — customers request a service, the expert/company accepts or declines, and customers can leave a review once it's done
+- **Messaging** built in, so customers and providers can talk without leaving the platform
+- **Admin tools** for managing companies and their owners
+- **A contact form** for anyone who just wants to reach out
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Built with
 
-## Learning Laravel
+- **Laravel** (PHP) on the backend
+- **Blade** templates with custom CSS/JS on the frontend — no frontend framework, kept it simple
+- **MySQL** for the database
+- Custom middleware for auth and role checks, instead of relying on a package
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Getting it running locally
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+You'll need PHP 8.2+, Composer, and MySQL installed first.
 
 ```bash
-composer require laravel/boost --dev
+# 1. Clone it
+git clone https://github.com/<your-username>/<your-repo>.git
+cd <your-repo>
 
-php artisan boost:install
+# 2. Install dependencies
+composer install
+
+# 3. Set up your environment
+cp .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Next, open `.env` and point it at your database:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=toolbox
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+Then run the migrations (add `--seed` if you want some sample data to play with):
+
+```bash
+php artisan migrate --seed
+php artisan storage:link
+php artisan serve
+```
+
+Open `http://localhost:8000` and you're in.
+
+## How roles work
+
+| ID  | Role          | Can do                                                    |
+| --- | ------------- | --------------------------------------------------------- |
+| 0   | Admin         | Manages companies and their owners, oversees the platform |
+| 1   | Customer      | Browses services, places orders, leaves reviews           |
+| 2   | Expert        | Offers services independently                             |
+| 3   | Company Admin | Handles orders/messages for a company                     |
+| 4   | Company Owner | Owns the company profile, manages its admins              |
+
+## A quick tour of the code
+
+```
+app/
+├── Http/
+│   ├── Controllers/        # One controller per feature (orders, experts, companies...)
+│   │   └── Dashboard/      # A controller per role's dashboard
+│   ├── Middleware/         # Custom auth + role-checking middleware
+│   └── Requests/           # Form validation
+├── Models/                 # Eloquent models
+database/
+├── migrations/
+└── seeders/                # Sample data if you want to try it out quickly
+resources/views/            # Blade templates
+routes/                     # Split by feature: orders.php, messages.php, dashboard.php, etc.
+```
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+If you find a bug or have an idea for an improvement, feel free to open an issue or send a pull request. Nothing formal — just fork it, make your changes, and open a PR describing what you did.
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT — see the [LICENSE](LICENSE) file. Basically: use it, modify it, build on it, just keep the copyright notice.
+
+## Questions?
+
+Open an issue, or use the contact form on the site itself.

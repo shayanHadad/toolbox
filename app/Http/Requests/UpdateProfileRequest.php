@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -50,15 +50,6 @@ class UpdateProfileRequest extends FormRequest
                 'regex:/^[A-Za-z0-9!@#$%^&*()_+\-=]+$/',
                 'confirmed', // requires a matching password_confirmation field
             ],
-            // آپلود عکس پروفایل اختیاریه. چند لایه محدودیت داریم:
-            // - image: فقط چیزی که واقعاً محتوای یک عکسه قبول می‌شه
-            //   (بر پایه‌ی محتوای فایل، نه اسم/پسوندش؛ یه فایل php که
-            //   اسمش رو gif گذاشته باشن رد می‌شه).
-            // - mimes: نوع فایل باید بر اساس محتوای واقعیش یکی از این‌ها
-            //   باشه (نه بر اساس Content-Type ای که خودِ کاربر می‌فرسته).
-            // - max: سقفِ حجم ۲ مگابایت، جلوی سوءاستفاده از فضای دیسک رو می‌گیره.
-            // - dimensions: یه لایه‌ی اضافه‌ی اطمینان که واقعاً ابعاد یک
-            //   عکسِ معقول رو داره.
             'profile_picture' => [
                 'nullable',
                 'image',

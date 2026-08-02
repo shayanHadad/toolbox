@@ -28,8 +28,6 @@ class ExpertDetailSeeder extends Seeder
             $category = $categories->random();
             $url = $category->url;
 
-            // اگه برای دسته‌بندی انتخاب‌شده متن اختصاصی نداشتیم (مثلاً دسته‌ی
-            // دستی جدیدی اضافه شده)، از دسته‌ی «سایر» استفاده می‌کنیم.
             $bioPool    = $bios[$url]    ?? $bios['others'];
             $resumePool = $resumes[$url] ?? $resumes['others'];
 
