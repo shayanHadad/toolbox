@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyAdminRequest;
@@ -13,15 +13,7 @@ use Illuminate\Support\Facades\Hash;
 
 class CompanyAdminController extends Controller
 {
-    /**
-     * مالک شرکت (role=4) یک کاربر جدید با role=3 می‌سازه که به‌عنوان
-     * ادمین همون شرکت عمل می‌کنه (می‌تونه به پیام‌ها و سفارش‌های شرکت
-     * رسیدگی کنه، ولی نمی‌تونه اطلاعات شرکت رو ویرایش کنه).
-     *
-     * چون هر کاربر از طریق ستون company_admin_id به یک رکورد
-     * company_admins وصل می‌شه، برای هر ادمین جدید یک رکورد
-     * company_admins مخصوص به خودش هم ساخته می‌شه.
-     */
+    // To add a new company admin
     public function store(StoreCompanyAdminRequest $request)
     {
         $owner = $request->user();
@@ -38,6 +30,8 @@ class CompanyAdminController extends Controller
             'password',
         ]);
 
+        // Create a new user with role = 3
+        // Create a new company admin
         DB::transaction(function () use ($company, $data) {
             $companyAdmin = CompanyAdmin::create([
                 'companyID' => $company->companyID,
@@ -58,9 +52,7 @@ class CompanyAdminController extends Controller
         return back()->with('success', 'ادمین جدید با موفقیت برای شرکت ثبت شد.');
     }
 
-    /**
-     * ویرایش یک ادمین (role=3) که برای همون شرکتِ مالک کار می‌کنه.
-     */
+    // Update an admin profile
     public function update(UpdateCompanyAdminRequest $request, User $admin)
     {
         $this->authorizeOwnershipOf($request->user(), $admin);
@@ -74,7 +66,6 @@ class CompanyAdminController extends Controller
             'password',
         ]);
 
-        // اگه فیلد رمز خالی گذاشته شده باشه، رمز فعلی دست‌نخورده می‌مونه.
         if (! empty($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
@@ -86,29 +77,7 @@ class CompanyAdminController extends Controller
         return back()->with('success', 'اطلاعات ادمین با موفقیت به‌روزرسانی شد.');
     }
 
-    /**
-     * حذف یک ادمین (role=3) که برای همون شرکتِ مالک کار می‌کنه.
-     *
-     * طبق تصمیمِ محصولی، پیام‌های این ادمین به‌جای اینکه فقط بمونن به
-     * اسم «ادمین حذف‌شده»، به owner ای که داره حذفش می‌کنه (role=4)
-     * منتقل می‌شن؛ یعنی هر جا senderID یا receiverID برابر آیدی این
-     * ادمین بوده، بعد از حذف برابر آیدی owner می‌شه و مکالمه دست‌نخورده
-     * باقی می‌مونه، فقط از این به بعد به owner نسبت داده می‌شه.
-     *
-     * تنها استثنا، پیام‌های خصوصیِ بین خودِ owner و همین ادمینه؛ چون اگه
-     * اون‌ها رو هم منتقل کنیم، هم senderID و هم receiverID برابر آیدی
-     * owner می‌شن (یعنی «پیام از owner به owner») که بی‌معنیه، پس این
-     * دسته رو مستقیماً پاک می‌کنیم.
-     *
-     * خودِ کاربر با anonymizeAndDelete() به‌صورت نرم حذف می‌شه (نه با
-     * FK دردسر داره، نه اجازه‌ی لاگین دوباره داره)؛ فقط username/
-     * contact_number مخدوش می‌شن تا مالک بتونه بعداً یه ادمین جدید با
-     * همون نام‌کاربری یا شماره تماس بسازه.
-     *
-     * ردیف company_admins مربوطه هم اگه بعد از حذف، کاربر دیگه‌ای (غیر
-     * از این ادمینِ حذف‌شده) بهش وصل نباشه، پاک می‌شه تا ردیف یتیم توی
-     * جدول نمونه.
-     */
+    // Delete an admin by company owner
     public function destroy(Request $request, User $admin)
     {
         $owner = $request->user();
@@ -118,8 +87,7 @@ class CompanyAdminController extends Controller
         DB::transaction(function () use ($admin, $owner) {
             $companyAdminId = $admin->company_admin_id;
 
-            // مکالمه‌ی خصوصیِ بین owner و همین ادمین، چون بعد از انتقال
-            // دو طرفش یکی می‌شه، مستقیماً پاک می‌شه.
+            // Delete all messages between owner and admin
             Message::where(function ($q) use ($admin, $owner) {
                 $q->where('senderID', $admin->userID)
                     ->where('receiverID', $owner->userID);
@@ -128,14 +96,15 @@ class CompanyAdminController extends Controller
                     ->where('receiverID', $admin->userID);
             })->delete();
 
-            // بقیه‌ی پیام‌های ارسالی/دریافتیِ ادمین به owner منتقل می‌شه
-            // به‌جای اینکه پاک بشه.
+            // Assign all the admin messages to company owner
             Message::where('senderID', $admin->userID)
                 ->update(['senderID' => $owner->userID]);
 
+            // Assign all the admin messages to company owner
             Message::where('receiverID', $admin->userID)
                 ->update(['receiverID' => $owner->userID]);
 
+            // Delete admin and free up its usrname and phone number
             $admin->anonymizeAndDelete();
 
             if ($companyAdminId) {
@@ -150,11 +119,7 @@ class CompanyAdminController extends Controller
         return back()->with('success', 'ادمین مورد نظر حذف شد.');
     }
 
-    /**
-     * مطمئن می‌شه $admin واقعاً یک ادمینِ (role=3) متعلق به همون شرکتیه
-     * که $owner (role=4) مالکشه؛ وگرنه ۴۰۴ برمی‌گردونه تا اطلاعاتی از
-     * وجود/عدم‌وجود کاربر توی شرکت‌های دیگه لو نره.
-     */
+    // Check the ownership of the company
     private function authorizeOwnershipOf(User $owner, User $admin): void
     {
         $ownerCompanyId = $owner->companyAdmin?->company?->companyID;

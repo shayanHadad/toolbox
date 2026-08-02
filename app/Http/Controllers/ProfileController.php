@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateProfileRequest;
@@ -26,12 +26,7 @@ class ProfileController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        // فقط اگه واقعاً یه فایلِ جدید فرستاده شده باشه دست به عکس می‌زنیم؛
-        // وگرنه چون فیلد nullable/optional‌ه، عکسِ قبلی نباید پاک بشه.
-        // فایل قبلاً توسط UpdateProfileRequest (image/mimes/max/dimensions)
-        // اعتبارسنجی شده. store() خودش یه اسمِ رندوم و امن تولید می‌کنه
-        // (نه اسمِ اصلیِ فایل که کاربر فرستاده)، پس مسیر/اسم فایل هیچ‌وقت
-        // مستقیماً از ورودیِ کاربر ساخته نمی‌شه.
+        // If user has uploaded a picture for profile
         if ($request->hasFile('profile_picture')) {
             if ($user->profile_picture) {
                 Storage::disk('public')->delete($user->profile_picture);
@@ -45,8 +40,7 @@ class ProfileController extends Controller
         return back()->with('success', 'اطلاعات پروفایل با موفقیت به‌روزرسانی شد.');
     }
 
-    // فقط اگه کاربر واقعاً عکسی توی دیتابیس ثبت کرده باشه چیزی حذف می‌شه؛
-    // در غیر این صورت هیچ کاری انجام نمی‌شه (نه خطا، نه درخواست به دیسک).
+    // Delete the profile picture
     public function destroyPicture(Request $request)
     {
         $user = $request->user();

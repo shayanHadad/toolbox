@@ -1,18 +1,12 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateCompanyProfileRequest;
 
 class CompanyProfileController extends Controller
 {
-    /**
-     * ویرایش اطلاعات شرکت (نام، توضیحات، تاریخ تأسیس و دسته‌بندی‌ها).
-     * فقط مالک شرکت (role=4) اجازه‌ی این کار رو داره؛ ادمین‌های شرکت
-     * (role=3) فقط می‌تونن به پیام‌ها و سفارش‌ها رسیدگی کنن.
-     * این محدودیت هم روی روت (میدلور role:4) و هم توی
-     * UpdateCompanyProfileRequest::authorize() اعمال شده.
-     */
+    // Only company owner can update the company profile
     public function update(UpdateCompanyProfileRequest $request)
     {
         $company = $request->user()->companyAdmin?->company;
@@ -23,6 +17,7 @@ class CompanyProfileController extends Controller
 
         $company->update($data);
 
+        // To sync many to many relationships
         $company->categories()->sync($request->input('categories', []));
 
         return back()->with('success', 'اطلاعات شرکت با موفقیت به‌روزرسانی شد.');

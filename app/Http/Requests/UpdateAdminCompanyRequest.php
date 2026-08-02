@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,21 +8,16 @@ class UpdateAdminCompanyRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // فقط ادمین کل (role=0) اجازه‌ی ویرایش شرکت‌ها رو داره؛
-        // این محدودیت روی روت هم با میدلور role:0 اعمال شده.
         return (int) $this->user()?->role === 0;
     }
 
     public function rules(): array
     {
-        // مالک فعلیِ همین شرکت رو از روی روت می‌گیریم تا بشه توی unique
-        // خودش رو از قلم انداخت (نباید با خودش تداخل کنه).
         $company = $this->route('company');
         $owner   = $company?->owner();
         $ownerId = $owner?->userID ?? 'NULL';
 
         return [
-            // اطلاعات شرکت
             'name' => [
                 'required',
                 'string',
@@ -42,7 +37,6 @@ class UpdateAdminCompanyRequest extends FormRequest
                 'before_or_equal:today',
             ],
 
-            // اطلاعات مالک شرکت (role=4)
             'username' => [
                 'required',
                 'alpha_dash',
@@ -74,7 +68,6 @@ class UpdateAdminCompanyRequest extends FormRequest
                 'after:1900-01-01',
             ],
 
-            // موقع ویرایش، رمزِ مالک اختیاریه؛ اگه خالی بمونه دست‌نخورده می‌مونه.
             'password' => [
                 'nullable',
                 'min:8',

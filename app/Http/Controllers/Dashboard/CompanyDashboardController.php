@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
@@ -17,7 +17,7 @@ class CompanyDashboardController extends Controller
         $user = $request->user();
         $company = $user->companyAdmin?->company;
 
-        // اگه کاربر هنوز به هیچ شرکتی وصل نشده (نماینده‌ی هیچ شرکتی نیست)
+        // If user has not been assigned to any company
         if (! $company) {
             return view('dashboard.company', [
                 'user'    => $user,
@@ -25,21 +25,19 @@ class CompanyDashboardController extends Controller
             ]);
         }
 
+        // If user can see orders
         $orders = $company->ordersVisibleTo($user)
             ->with('customer')
             ->orderByDesc('orderID')
             ->take(6)
             ->get();
 
-        // پیام‌ها بین اعضای شرکت مشترکه (یک اینباکس واحد)، پس نباید بر اساس
-        // receiverID این کاربر خاص فیلتر بشه؛ باید بر اساس companyID شرکت و
-        // اینکه فرستنده مشتری باشه (نه یکی دیگه از اعضای شرکت) حساب بشه،
-        // وگرنه پیام‌هایی که برای admin/owner دیگه‌ای فرستاده شدن دیده نمی‌شن.
         $companyID = $company->companyID;
 
+        // Fetch the unread messages
         $unreadCompanyMessages = Message::forCompany($companyID)
             ->where('status', 0)
-            ->whereHas('sender', fn ($q) => $q->where('role', 1));
+            ->whereHas('sender', fn($q) => $q->where('role', 1));
 
         $stats = [
             'active'    => $company->ordersVisibleTo($user)->whereIn('status', [Order::STATUS_WAITING, Order::STATUS_IN_PROGRESS])->count(),
@@ -58,7 +56,6 @@ class CompanyDashboardController extends Controller
 
         $categories = WorkCategory::orderBy('category_name')->get();
 
-        // ادمین‌های فعلی شرکت (role=3)؛ فقط برای نمایش به مالک شرکت لازمه.
         $companyAdmins = $company->admins()
             ->with('users')
             ->get()

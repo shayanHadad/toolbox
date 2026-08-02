@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateExpertProfileRequest;
@@ -25,9 +25,6 @@ class ExpertProfileController extends Controller
             $userData['password'] = Hash::make($request->password);
         }
 
-        // همون منطق ProfileController: فقط اگه فایل جدیدی اومده باشه
-        // جایگزین می‌شه، و قبل از جایگزینی، عکسِ قبلی (در صورت وجود) پاک
-        // می‌شه تا فایلِ یتیم روی دیسک نمونه.
         if ($request->hasFile('profile_picture')) {
             if ($user->profile_picture) {
                 Storage::disk('public')->delete($user->profile_picture);
@@ -50,8 +47,6 @@ class ExpertProfileController extends Controller
         return back()->with('success', 'اطلاعات پروفایل با موفقیت به‌روزرسانی شد.');
     }
 
-    // همون منطق ProfileController: فقط وقتی عکسی توی دیتابیس ثبت شده
-    // باشه حذفش می‌کنیم.
     public function destroyPicture(Request $request)
     {
         $user = $request->user();

@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
@@ -14,12 +14,14 @@ class CustomerDashboardController extends Controller
 
         $user = $request->user();
 
+        // Fetch the 6 newest orders
         $orders = $user->customerOrders()
             ->with(['provider', 'company'])
             ->orderByDesc('orderID')
             ->take(6)
             ->get();
 
+        // Change the status codes to strings
         $stats = [
             'active'    => $user->customerOrders()->whereIn('status', [Order::STATUS_WAITING, Order::STATUS_IN_PROGRESS])->count(),
             'completed' => $user->customerOrders()->where('status', Order::STATUS_FINISHED)->count(),
@@ -27,26 +29,24 @@ class CustomerDashboardController extends Controller
             'unread'    => $user->receivedMessages()->where('status', 0)->count(),
         ];
 
+        // Fetch the bookmarked providers
         $bookmarkedProviders = $user->bookmarkedProviders()
             ->with('expertDetail')
             ->take(4)
             ->get();
 
+
+        // Recent messages (4)
         $recentMessages = $user->receivedMessages()
-            ->where('status', 0) // فقط پیام‌های واقعاً خوانده‌نشده
+            ->where('status', 0) // Unread messages
             ->with(['sender', 'company'])
             ->orderByDesc('messageID')
             ->get()
-            // یه پیام شرکتی ممکنه از طرف چند نماینده‌ی مختلف همون شرکت
-            // اومده باشه؛ چون توی لیست کامل پیام‌ها (messages.index) همه‌ی
-            // این‌ها زیر یک مکالمه‌ی واحد (بر اساس companyID) نشون داده
-            // می‌شن، اینجا هم باید همون‌طوری گروه‌بندی بشه، وگرنه ویجت یه
-            // پیام رو جدا نشون می‌ده که توی لیست بخشی از یه مکالمه‌ی
-            // دیگه‌ست و انگار گم شده.
-            ->unique(fn ($message) => $message->companyID ?? 'user-' . $message->senderID)
+            ->unique(fn($message) => $message->companyID ?? 'user-' . $message->senderID)
             ->take(4)
             ->values();
 
+        // Return the view
         return view('dashboard.customer', [
             'user'                => $user,
             'orders'              => $orders,

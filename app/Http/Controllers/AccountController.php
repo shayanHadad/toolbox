@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Models\Order;
@@ -9,74 +9,49 @@ use Illuminate\Support\Facades\Hash;
 
 class AccountController extends Controller
 {
-    /**
-     * حذف (نرم) حساب کاربری. چون مدل User از SoftDeletes استفاده می‌کنه،
-     * لازم نیست سفارش‌ها و پیام‌های کاربر رو دستی پاک کنیم؛ ردیف کاربر
-     * فقط deleted_at می‌گیره، حساب دیگه قابل لاگین نیست و از همه‌ی
-     * لیست‌های عمومی (متخصص‌ها، شرکت‌ها و ...) خودکار کنار می‌ره.
-     *
-     * برای مشتری (role=1): سفارش‌های در انتظارش لغو می‌شن (پایین‌تر)،
-     * و طبق منطقِ MessageController، دیگه توی لیستِ پیام‌های متخصص/شرکت
-     * دیده نمی‌شه. سفارش‌های finished‌شده و نظر/امتیازِ ثبت‌شده روش
-     * دست‌نخورده می‌مونه.
-     * برای متخصص (role=2): سفارش‌های در انتظاری که provider‌شونه رد
-     * می‌شن (پایین‌تر)، وگرنه مشتری برای همیشه با یه سفارشِ «در انتظار
-     * تأیید» می‌موند که هیچ‌وقت کسی تأییدش نمی‌کرد. تاریخچه‌ی سفارش‌ها/
-     * پیام‌هایی که مشتری‌های طرفِ حسابش دارن، دست‌نخورده می‌مونه.
-     *
-     * برای مشتری (role=1) و متخصص (role=2) مجازه؛ این محدودیت روی
-     * روت با میدلور role:1,2 اعمال شده.
-     *
-     * قبل از حذف، رمز عبور فعلی کاربر رو می‌گیریم تا مطمئن بشیم
-     * خودِ صاحبِ حساب داره این کار رو انجام می‌ده.
-     */
+    // Delete the user account
     public function destroy(Request $request)
     {
         $user = $request->user();
 
+        // Validate the form data
         $request->validate([
             'password' => ['required', 'string'],
         ], [
             'password.required' => 'برای حذف حساب باید رمز عبورت رو وارد کنی.',
         ]);
 
+        // Check the user password
         if (! Hash::check($request->input('password'), $user->password)) {
             return back()
                 ->withErrors(['password' => 'رمز عبور وارد شده صحیح نیست.'])
                 ->with('deleteAccountOpen', true);
         }
 
+        // If customer
         if ((int) $user->role === 1) {
-            // سفارش‌های در انتظارِ این مشتری لغو می‌شن (status=cancelled)،
-            // نه حذف؛ چون تاریخچه برای طرفِ مقابل (متخصص/شرکت) باید بمونه.
-            // این کار خودش باعث می‌شه از لیستِ درخواست‌ها هم کنار برن،
-            // چون اون لیست فقط سفارش‌های waiting رو نشون می‌ده. سفارش‌های
-            // finished و نظر/امتیازی که مشتری قبلاً ثبت کرده دست‌نخورده
-            // می‌مونه.
+            // Update all waiting orders to cancelled
             $user->customerOrders()
                 ->where('status', Order::STATUS_WAITING)
                 ->update(['status' => Order::STATUS_CANCELLED]);
         }
 
+        // If expert
         if ((int) $user->role === 2) {
-            // سفارش‌های در انتظاری که این متخصص provider‌شونه رد می‌شن
-            // (status=rejected)، همون وضعیتی که خودِ متخصص با دکمه‌ی «رد
-            // کردن» می‌ذاشت؛ وگرنه بعد از حذف حساب، دیگه هیچ‌وقت کسی
-            // نیست تأییدش کنه و مشتری برای همیشه با یه سفارشِ «در انتظار
-            // تأیید» به یک متخصصِ دیگه‌وجودنداشته می‌موند.
+            // Update all waiting orders to rejected
             $user->providerOrders()
                 ->where('status', Order::STATUS_WAITING)
                 ->update(['status' => Order::STATUS_REJECTED]);
         }
 
-        // username و contact_number مخدوش می‌شن (چون یونیک‌ان و ردیف
-        // فیزیکاً باقی می‌مونه)، بعد ردیف soft-delete می‌شه.
+        // Alter the username and phone number so they get freed for new users
         $user->anonymizeAndDelete();
 
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
+        // Redirect to home page after logging out the user
         return redirect()->route('home')->with('success', 'حساب کاربری‌ات با موفقیت حذف شد.');
     }
 }

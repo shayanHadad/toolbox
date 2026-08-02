@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Models\Company;
@@ -9,52 +9,51 @@ use Illuminate\Http\Request;
 
 class MessageController extends Controller
 {
-    /**
-     * لیست مکالمه‌های کاربر لاگین‌کرده.
-     * - مشتری/متخصص (role=1,2): مثل قبل، به‌علاوه اینکه اگر با یک شرکت
-     *   چت کرده باشند، تمام پیام‌های آن شرکت (مستقل از اینکه کدوم ادمین
-     *   پاسخ داده) در یک ردیف واحد نمایش داده می‌شود.
-     * - ادمین/مالک شرکت (role=3,4): لیست مشتری‌هایی که با شرکت (نه با
-     *   خودِ این ادمین) چت کرده‌اند؛ تاریخچه‌ی مشترک بین همه‌ی ادمین‌ها.
-     */
+
+    // Return the list of chats base on roles
     public function index(Request $request)
     {
         $user = $request->user();
 
+        // If user has roles 3, 4
         if (in_array((int) $user->role, [3, 4], true)) {
             return $this->indexForCompany($user);
         }
 
+        // If user has roles 1, 2
         return $this->indexForRegularUser($user);
     }
 
+    // Finding the list of chats for users with roles 1, 2
     protected function indexForRegularUser(User $user)
     {
         $messages = Message::where('senderID', $user->userID)
             ->orWhere('receiverID', $user->userID)
             ->get(['senderID', 'receiverID', 'companyID']);
 
-        // مکالمات شخصی (بدون شرکت): دقیقا مثل رفتار قبلی، گروه‌بندی بر اساس طرف مقابل
+        // Chats with users with role = 2
         $personalPartnerIds = $messages
             ->whereNull('companyID')
+            // Find chats that users was involved in and map the sender and receiver IDs
             ->map(fn($m) => $m->senderID == $user->userID ? $m->receiverID : $m->senderID)
             ->unique();
 
-        // اگه طرفِ مقابل حسابش رو حذف کرده (soft-delete شده)، دیگه توی
-        // لیستِ پیام‌های این کاربر نشون داده نمی‌شه.
+        // If other side of the chat is soft-delted do not show it
         $personalConversations = User::whereIn('userID', $personalPartnerIds)
             ->get()
-            ->map(function (User $partner) use ($user) {
+            ->map(function (User $partner) use ($user) { // Find the last message between 2 users
                 $lastMessage = $this->conversationQuery($user, $partner)
                     ->latest('messageID')
                     ->first();
 
+                // Count the unread messages in this chat
                 $unreadCount = Message::where('senderID', $partner->userID)
                     ->where('receiverID', $user->userID)
                     ->whereNull('companyID')
                     ->where('status', 0)
                     ->count();
 
+                // Return the data
                 return (object) [
                     'type'        => 'user',
                     'partner'     => $partner,
@@ -64,9 +63,11 @@ class MessageController extends Controller
                 ];
             });
 
-        // مکالمات شرکتی: یک ردیف واحد به‌ازای هر companyID، نه یکی برای هر ادمین
+        // Company conversations
+        // Get the company IDs that user has a chat with
         $companyIds = $messages->pluck('companyID')->filter()->unique();
 
+        // Fetch the last message of each conversation with each company
         $companyConversations = $companyIds->map(function ($companyID) use ($user) {
             $lastMessage = Message::forCompany($companyID)
                 ->where(function ($q) use ($user) {
@@ -76,15 +77,13 @@ class MessageController extends Controller
                 ->latest('messageID')
                 ->first();
 
+            // Count the unread messages for each chat with each company
             $unreadCount = Message::forCompany($companyID)
                 ->where('receiverID', $user->userID)
                 ->where('status', 0)
                 ->count();
 
-            // برای لینک به messages.show باید یک User مشخص بدیم (route model
-            // binding قبلی حفظ می‌شه)؛ آخرین طرف مقابل کافیه، چون show()
-            // تشخیص مکالمه‌ی شرکتی رو از روی companyID انجام می‌ده، نه از
-            // روی اینکه دقیقاً کدوم ادمین partner هست.
+            // To get the chat partner information
             $routePartnerId = $lastMessage
                 ? ($lastMessage->senderID == $user->userID ? $lastMessage->receiverID : $lastMessage->senderID)
                 : null;
@@ -98,53 +97,54 @@ class MessageController extends Controller
             ];
         });
 
+        // Merge the both company and expert conversations
         $conversations = $personalConversations->merge($companyConversations)
             ->sort(function ($a, $b) {
-                // ابتدا مکالمه‌هایی که پیام خوانده‌نشده دارند
+                // Sort the messages so unread messages are on top
                 if (($a->unreadCount > 0) !== ($b->unreadCount > 0)) {
                     return $a->unreadCount > 0 ? -1 : 1;
                 }
 
-                // سپس جدیدترین پیام
+                // After unread messages sort based on the newest chats
                 return ($b->lastMessage?->messageID ?? 0)
                     <=> ($a->lastMessage?->messageID ?? 0);
             })
             ->values();
 
+        // Return the view with proper datas
         return view('messages.index', [
             'conversations' => $conversations,
         ]);
     }
 
+    // Showing index for companies
     protected function indexForCompany(User $user)
     {
+        // Find the company ID
         $companyID = Message::companyIdForUser($user);
 
         abort_unless($companyID, 403, 'کاربر شرکت به هیچ شرکتی متصل نیست.');
 
+        // Find the company
         $company = Company::find($companyID);
 
         abort_unless($company, 404);
 
-        // آی‌دیِ همه‌ی کسانی که تا الان نماینده‌ی این شرکت بوده‌ن، از جمله
-        // اون‌هایی که بعداً soft-delete شدن؛ اگه به‌جاش برای هر پیام یه
-        // User::find() تازه می‌زدیم، پیامِ فرستاده‌شده توسط یه ادمینِ
-        // حذف‌شده اشتباهی «پیامِ مشتری» تشخیص داده می‌شد.
+        // Find all the company admin Ids (even soft deleted ones)
         $repIds = $company->repUserIds();
 
+        // Get all company messages
         $companyMessages = Message::forCompany($companyID)->get(['senderID', 'receiverID']);
 
-        // مشتری همیشه طرفی از پیام است که عضو شرکت (role 3/4) نیست
+        // Find all customer IDs that have chats with the company
         $customerIds = $companyMessages
-            ->map(fn (Message $m) => in_array($m->senderID, $repIds, true) ? $m->receiverID : $m->senderID)
+            ->map(fn(Message $m) => in_array($m->senderID, $repIds, true) ? $m->receiverID : $m->senderID)
             ->unique();
 
-        // مشتریِ حذف‌شده (soft-delete شده) دیگه اصلاً نباید توی اینباکسِ
-        // شرکت دیده بشه؛ برخلاف نماینده‌های حذف‌شده‌ی شرکت که تاریخچه‌شون
-        // باید بمونه، اینجا withTrashed به‌کار نمی‌ره.
+        // Do not show the conversations with soft deleted users
         $conversations = User::whereIn('userID', $customerIds)
             ->get()
-            ->map(function (User $customer) use ($companyID) {
+            ->map(function (User $customer) use ($companyID) { // Fetch the last messages of each chat
                 $lastMessage = Message::forCompany($companyID)
                     ->where(function ($q) use ($customer) {
                         $q->where('senderID', $customer->userID)
@@ -153,8 +153,7 @@ class MessageController extends Controller
                     ->latest('messageID')
                     ->first();
 
-                // خوانده‌نشده = پیام‌هایی که این مشتری فرستاده و هنوز توسط
-                // هیچ‌کدام از اعضای شرکت خوانده نشده (اینباکس مشترک)
+                // Count the unread messages for each chat
                 $unreadCount = Message::forCompany($companyID)
                     ->where('senderID', $customer->userID)
                     ->where('status', 0)
@@ -168,42 +167,31 @@ class MessageController extends Controller
                     'unreadCount' => $unreadCount,
                 ];
             })
-            // ادمین شرکت (role=3) فقط مکالمه‌هایی رو می‌بینه که فعلاً پیام
-            // خوانده‌نشده دارن؛ مالک شرکت (role=4) به همه‌شون دسترسی داره.
-            ->when((int) $user->role === 3, fn ($conversations) => $conversations->filter(
-                fn ($conversation) => $conversation->unreadCount > 0
+
+            // Role = 3 only sees chats with unread messages
+            // Role = 4 can see all the chats
+            ->when((int) $user->role === 3, fn($conversations) => $conversations->filter(
+                fn($conversation) => $conversation->unreadCount > 0
             ))
+            // Always show the unread messages on top
             ->sort(function ($a, $b) {
                 if (($a->unreadCount > 0) !== ($b->unreadCount > 0)) {
                     return $a->unreadCount > 0 ? -1 : 1;
                 }
 
+                // Then sort the newst messages on top
                 return ($b->lastMessage?->messageID ?? 0)
                     <=> ($a->lastMessage?->messageID ?? 0);
             })
             ->values();
 
+        // Return the index for companies
         return view('messages.index', [
             'conversations' => $conversations,
         ]);
     }
 
-    /**
-     * صفحه‌ی چت.
-     * - اگر یکی از دو طرف (کاربر لاگین‌کرده یا partner) عضو شرکت باشد،
-     *   کل تاریخچه‌ی companyID <-> مشتری نشون داده می‌شه (مستقل از اینکه
-     *   partner دقیقاً کدوم ادمین/مالک شرکت هست).
-     * - در غیر این صورت، رفتار قبلی (چت شخصی صرفاً بین این دو نفر) حفظ می‌شه.
-     *
-     * برخلاف بقیه‌ی مسیرهایی که User رو implicit bind می‌کنن، اینجا
-     * partner رو دستی و با withTrashed() پیدا می‌کنیم؛ چون این صفحه
-     * قراره تاریخچه‌ی یک مکالمه‌ی *قدیمی* رو نشون بده، حتی اگه طرفِ
-     * مکالمه (مثلاً یک ادمین شرکتِ حذف‌شده) دیگه soft-delete شده باشه.
-     * store() هم مشابه همین withTrashed() رو داره تا بشه به یک مکالمه‌ی
-     * شرکتی که آخرین طرفِ مسیرشده‌اش حذف شده جواب داد؛ فقط برای چتِ
-     * شخصیِ (بدون شرکت) با یک کاربرِ کاملاً حذف‌شده، شروع/ادامه‌ی پیامِ
-     * جدید همچنان مسدوده (چون دیگه کسی نیست که بخونتش).
-     */
+    // Chat page
     public function show(Request $request, int $partner)
     {
         $user = $request->user();
@@ -212,36 +200,30 @@ class MessageController extends Controller
 
         abort_unless($partner, 404);
 
-        // مشتریِ حذف‌شده (role=1 که soft-delete شده) دیگه اصلاً نباید توی
-        // چت‌ها نمایش داده بشه، نه برای متخصص نه برای شرکت. این محدودیت
-        // فقط برای مشتری‌هاست؛ نماینده‌ی حذف‌شده‌ی شرکت هم‌چنان طبق طراحیِ
-        // قبلی قابل مشاهده می‌مونه (تاریخچه‌ی مشتری با شرکت حفظ بشه).
+        // User can not open a chat with a user that got soft-deleted
         abort_if((int) $partner->role === 1 && $partner->trashed(), 404);
 
+        // User ID and partner ID are the same
         abort_if($user->userID === $partner->userID, 404);
 
+        // Find company ID if it user or partner has roles 3, 4
         $companyID = Message::companyIdForUser($user) ?? Message::companyIdForUser($partner);
 
         if ($companyID) {
             $isStaffViewer = in_array((int) $user->role, [3, 4], true);
 
-            // مکالمه‌ی شرکتی فقط بین «یک مشتریِ واقعی (role=1)» و «یک
-            // نماینده‌ی شرکت (role=3/4)» معنی داره. اگه کاربرِ لاگین‌کرده
-            // خودش عضو شرکته، طرفِ مقابل باید واقعاً مشتری باشه؛ وگرنه
-            // (مثلاً یه متخصص، یا نماینده‌ی یه شرکتِ دیگه) نباید بتونه این
-            // صفحه رو با تایپ‌کردن آدرس ببینه.
+            // Making sure one side of the chat has role = 1
             if ($isStaffViewer) {
                 abort_unless((int) $partner->role === 1, 404);
             } else {
                 abort_unless((int) $user->role === 1 && in_array((int) $partner->role, [3, 4], true), 404);
             }
 
+            // Determain that customer is partner or the main user
             $customer = $isStaffViewer ? $partner : $user;
 
+            // If user has role = 3 only can open chats with unread messages
             if ($isStaffViewer && (int) $user->role === 3) {
-                // ادمین شرکت فقط به مکالمه‌هایی دسترسی داره که فعلاً پیام
-                // خوانده‌نشده دارن؛ در غیر این صورت اصلاً اجازه‌ی باز
-                // کردنش رو نداره (برخلاف مالک شرکت که به همه دسترسی داره).
                 $hasUnread = Message::forCompany($companyID)
                     ->where('senderID', $customer->userID)
                     ->where('status', 0)
@@ -250,6 +232,7 @@ class MessageController extends Controller
                 abort_unless($hasUnread, 404);
             }
 
+            // Fetch the messages for company
             $messages = Message::forCompany($companyID)
                 ->where(function ($q) use ($customer) {
                     $q->where('senderID', $customer->userID)
@@ -260,19 +243,20 @@ class MessageController extends Controller
                 ->get();
 
             if ($isStaffViewer) {
-                // پیام‌های ارسالی مشتری برای کل تیم شرکت خوانده‌شده علامت بزن
+                // If user is not customer mark all messages as read
                 Message::forCompany($companyID)
                     ->where('senderID', $customer->userID)
                     ->where('status', 0)
                     ->update(['status' => 1]);
             } else {
-                // پیام‌های ارسالی هر یک از اعضای شرکت که برای این مشتری فرستاده شده
+                // If user has role = 1 mark all messages as read
                 Message::forCompany($companyID)
                     ->where('receiverID', $user->userID)
                     ->where('status', 0)
                     ->update(['status' => 1]);
             }
 
+            // Return the chat page
             return view('messages.show', [
                 'partner'  => $partner,
                 'messages' => $messages,
@@ -280,23 +264,23 @@ class MessageController extends Controller
             ]);
         }
 
-        // اینجا چتِ شرکتی نبوده (هیچ‌کدوم عضو شرکت نبودن)، پس باید یه چتِ
-        // شخصیِ مجاز باشه: مشتری با متخصص. دو نفر با role یکسان (مثلاً
-        // دو مشتری) یا هر ترکیب نامعتبر دیگه حتی نباید بتونن تاریخچه‌ی
-        // این «مکالمه» رو با تایپ‌کردن آدرس ببینن.
+
+        // Chat partner is an expert
         abort_unless($this->canConverse($user, $partner), 404);
 
+        // Fetch all the conversation messages
         $messages = $this->conversationQuery($user, $partner)
             ->with(['sender', 'receiver'])
             ->orderBy('messageID')
             ->get();
 
-        // پیام‌های دریافتی از طرف مقابل که هنوز خونده نشدن، الان که صفحه باز شد خونده‌شده علامت بزن
+        // Mark messages as read
         Message::where('senderID', $partner->userID)
             ->where('receiverID', $user->userID)
             ->where('status', 0)
             ->update(['status' => 1]);
 
+        // Return the chat page
         return view('messages.show', [
             'partner'  => $partner,
             'messages' => $messages,
@@ -304,58 +288,36 @@ class MessageController extends Controller
         ]);
     }
 
-    /**
-     * ارسال پیام به یک متخصص/شرکت (توسط مشتری) یا پاسخ به یک مشتری
-     * (توسط متخصص، ادمین شرکت یا مالک شرکت)، و ریدایرکت به صفحه‌ی چت مشترک.
-     * فقط برای کاربرهای لاگین‌کرده با role=1 (مشتری)، role=2 (متخصص)،
-     * role=3 (ادمین شرکت) یا role=4 (مالک شرکت) مجاز است؛ این محدودیت
-     * روی روت با میدلور role:1,2,3,4 اعمال شده.
-     */
+    // Sending a new message
     public function store(Request $request, int $partner)
     {
         $user = $request->user();
 
-        // برخلاف implicit binding معمولی (که کاربر soft-delete‌شده رو در
-        // نظر نمی‌گیره)، اینجا دستی با withTrashed() پیدا می‌کنیم؛ چون
-        // توی یه مکالمه‌ی شرکتی، ممکنه آخرین طرفِ مسیرشده (routePartnerId)
-        // یه ادمین/مالکِ حذف‌شده باشه، درحالی‌که بقیه‌ی اعضای فعالِ همون
-        // شرکت هنوز باید بتونن پیامِ جدید رو دریافت کنن.
+        // Find the partner even if has been soft-deleted
         $partner = User::withTrashed()->find($partner);
 
         abort_unless($partner, 404);
 
-        // مشتریِ حذف‌شده دیگه اصلاً طرفِ گفتگو حساب نمی‌شه، چه شخصی چه
-        // شرکتی؛ برخلاف نماینده‌ی حذف‌شده‌ی شرکت که پیامِ جدید هنوز به
-        // اینباکسِ مشترکِ شرکت می‌رسه.
+        // Abort if the expert has been deleted
         abort_if((int) $partner->role === 1 && $partner->trashed(), 404);
 
+        // Abort if user is chatting to itself
         abort_if($user->userID === $partner->userID, 404);
 
-        // اگر فرستنده یا گیرنده عضو شرکت (role 3/4) باشه، پیام به companyID
-        // مربوطه وصل می‌شه تا بین همه‌ی ادمین‌های شرکت مشترک باشه؛ در غیر
-        // این صورت null می‌مونه (چت شخصی).
+        // Find company ID if one side of the chat is company
         $companyID = Message::resolveCompanyId($user, $partner);
 
-        // اگه این یه مکالمه‌ی شرکتی نیست (یعنی نه فرستنده نه گیرنده عضو
-        // شرکتن) و طرفِ مقابل soft-delete شده، اجازه‌ی شروع/ادامه‌ی پیامِ
-        // جدید داده نمی‌شه؛ چون دیگه کاربر فعالی نیست که بخونتش. برای
-        // مکالمه‌ی شرکتی این محدودیت اعمال نمی‌شه، چون پیام به کل اینباکسِ
-        // مشترکِ شرکت می‌ره، نه فقط به همین یک نفر.
+        // Abort if it is not a company and expert is soft-deleted
         abort_if(! $companyID && $partner->trashed(), 404);
 
-        // فقط «مشتری (role=1) ↔ متخصص/شرکت (role=2،3،4)» مجازه؛ دو نفر
-        // با role یکسان (دو مشتری، دو متخصص، دو نماینده‌ی شرکت) یا هر
-        // ترکیب نامعتبر دیگه (مثلاً متخصص ↔ شرکت) اصلاً نباید بتونن به
-        // هم پیام بدن.
         abort_unless($this->canConverse($user, $partner), 404);
 
-        // اگه طرفِ متخصصِ این گفتگو هنوز پروفایل تخصصی‌ش رو تکمیل نکرده،
-        // مشتری نمی‌تونه براش پیام *جدید* بفرسته (پاسخِ خودِ متخصص به
-        // مشتری‌های قبلی محدود به این شرط نیست).
+        // Customer can chat with expert unless it has details
         if ((int) $user->role === 1 && (int) $partner->role === 2) {
             abort_unless($partner->expertDetail, 404);
         }
 
+        // Validate the datas
         $data = $request->validate([
             'message' => ['required', 'string', 'max:2000'],
         ], [
@@ -363,6 +325,7 @@ class MessageController extends Controller
             'message.max'      => 'پیام نمی‌تونه بیشتر از ۲۰۰۰ کاراکتر باشه.',
         ]);
 
+        // Add the message to database
         Message::create([
             'senderID'   => $user->userID,
             'receiverID' => $partner->userID,
@@ -371,36 +334,27 @@ class MessageController extends Controller
             'companyID'  => $companyID,
         ]);
 
+        // If user has role = 3 redirect to index page
         if ((int) $user->role === 3) {
             return redirect()
                 ->route('messages.index')
                 ->with('success', 'پیامت با موفقیت ارسال شد.');
         }
 
+        // If user has roles 1, 2, 4 stay on the page only refresh it
         return redirect()
             ->route('messages.show', $partner->userID)
             ->with('success', 'پیامت با موفقیت ارسال شد.');
     }
 
-    /**
-     * تمام پیام‌های رد و بدل شده (در هر دو جهت) بین دو کاربر، فقط برای
-     * چت شخصی (بدون شرکت). چت‌های شرکتی در show()/index() با companyID
-     * و اسکوپ forCompany() مدیریت می‌شوند.
-     */
+    // Fetch a complete conversation between users with roles 1 and 2
     private function conversationQuery(User $a, User $b)
     {
         return Message::betweenUsers($a->userID, $b->userID);
     }
 
-    /**
-     * آیا این دو کاربر اصلاً مجازن با هم گفتگو داشته باشن (چه دیدنِ
-     * تاریخچه، چه فرستادنِ پیامِ جدید)؟ فقط برای چتِ شخصیِ بدون شرکت
-     * به‌کار می‌ره؛ چتِ شرکتی قوانینِ خودش رو در show()/store() داره.
-     *
-     * قانون: فقط مشتری (role=1) با متخصص (role=2) می‌تونه پیام رد و
-     * بدل کنه. دو نفر با role یکسان (دو مشتری، دو متخصص، ...) یا هر
-     * ترکیب دیگه‌ای (مثلاً متخصص با نماینده‌ی شرکت) مجاز نیست.
-     */
+    // Check if two users can talk
+    // One side of the chat always has to be a role = 1
     private function canConverse(User $a, User $b): bool
     {
         $roleA = (int) $a->role;

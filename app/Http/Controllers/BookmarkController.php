@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers;
 
 use App\Models\Bookmark;
@@ -10,32 +10,29 @@ use Illuminate\Http\Request;
 
 class BookmarkController extends Controller
 {
-    /**
-     * لیست متخصص‌ها و شرکت‌هایی که کاربر (مشتری) بوکمارک کرده.
-     */
+    // List of bookmarked experts and companies for user (role = 1)
     public function index(Request $request)
     {
         $user = $request->user();
 
+        // Fetch bookmarked experts
         $providers = $user->bookmarkedProviders()
-            ->with('expertDetail.category')
+            ->with('expertDetail.category') // Load related information
             ->get();
 
+        // Fetch bookmarked companies
         $companies = $user->bookmarkedCompanies()
             ->with('categories')
             ->get();
 
+        // return the view with fetched data
         return view('bookmarks.index', [
             'providers' => $providers,
             'companies' => $companies,
         ]);
     }
 
-    /**
-     * بوکمارک کردن / حذف بوکمارک یک متخصص (toggle).
-     * فقط برای کاربرهای لاگین‌کرده با role=1 (مشتری) مجاز است؛
-     * این محدودیت روی روت با میدلور role:1 اعمال شده.
-     */
+    // Add/Delete an expert to bookmarks for users with (role = 1)
     public function toggle(Request $request, User $expert)
     {
         abort_unless($expert->role == 2 && $expert->expertDetail, 404);
@@ -43,14 +40,16 @@ class BookmarkController extends Controller
         /** @var User $user */
         $user = $request->user();
 
+        // Get the bookmarked expert from database
         $bookmark = Bookmark::where('customerID', $user->userID)
             ->where('providerID', $expert->userID)
             ->first();
 
+        // If it existed delete it from bookmarks
         if ($bookmark) {
             $bookmark->delete();
             $message = 'متخصص از لیست بوکمارک‌هات حذف شد.';
-        } else {
+        } else { // If it didn't exist add it to bookmarks
             Bookmark::create([
                 'customerID' => $user->userID,
                 'providerID' => $expert->userID,
@@ -58,27 +57,26 @@ class BookmarkController extends Controller
             $message = 'متخصص به لیست بوکمارک‌هات اضافه شد.';
         }
 
+        // Return to previous page with proper message
         return back()->with('success', $message);
     }
 
-    /**
-     * بوکمارک کردن / حذف بوکمارک یک شرکت (toggle).
-     * فقط برای کاربرهای لاگین‌کرده با role=1 (مشتری) مجاز است؛
-     * این محدودیت روی روت با میدلور role:1 اعمال شده.
-     */
+    // Add/Delete a company to bookmarks by user (role = 1)
     public function toggleCompany(Request $request, Company $company)
     {
         /** @var User $user */
         $user = $request->user();
 
+        // Look for the bookmarked company in database
         $bookmark = CompanyBookmark::where('customerID', $user->userID)
             ->where('companyID', $company->companyID)
             ->first();
 
+        // If it existed then delete it
         if ($bookmark) {
             $bookmark->delete();
             $message = 'شرکت از لیست بوکمارک‌هات حذف شد.';
-        } else {
+        } else { // Add it to bookmarks
             CompanyBookmark::create([
                 'customerID' => $user->userID,
                 'companyID'  => $company->companyID,

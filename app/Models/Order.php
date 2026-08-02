@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -8,7 +8,7 @@ class Order extends Model
 {
     protected $primaryKey = 'orderID';
 
-    // کدهای عددی معتبر برای ستون status
+    // Status codes stored in database
     public const STATUS_WAITING     = 1;
     public const STATUS_IN_PROGRESS = 2;
     public const STATUS_FINISHED    = 3;
@@ -33,9 +33,7 @@ class Order extends Model
         ];
     }
 
-    /**
-     * برچسب فارسیِ قابل‌نمایش برای هر وضعیت.
-     */
+    // Persian label for order statuses
     public function statusLabel(): string
     {
         return match ($this->status) {
@@ -48,9 +46,7 @@ class Order extends Model
         };
     }
 
-    /**
-     * کلاس CSS بج مربوط به هر وضعیت (cd-badge-*).
-     */
+    // cd-badges for css classes based on status
     public function statusBadgeClass(): string
     {
         return match ($this->status) {
@@ -73,12 +69,7 @@ class Order extends Model
             && is_null($this->rating);
     }
 
-    /**
-     * سفارش‌هایی که تأیید شده‌ن (in_progress) ولی تاریخ مدنظرشون گذشته رو
-     * به‌صورت خودکار «تمام‌شده» علامت می‌زنه. چون پروژه scheduler/cron نداره،
-     * این متد از داخل کنترلرهای مرتبط (داشبوردها و صفحات سفارش) صدا زده می‌شه
-     * تا هر بار کاربر به این صفحات سر می‌زنه، وضعیت به‌روز بشه.
-     */
+    // Automatically changed the status from in progress to finished if the order date passed
     public static function autoFinishPastOrders(): void
     {
         static::where('status', self::STATUS_IN_PROGRESS)
@@ -86,11 +77,6 @@ class Order extends Model
             ->update(['status' => self::STATUS_FINISHED]);
     }
 
-    /**
-     * withTrashed() اینجا لازمه چون بعد از soft-delete شدن یک کاربر،
-     * سفارش‌های قدیمی همچنان باید مشتری/ارائه‌دهنده رو نشون بدن، نه
-     * اینکه customer/provider یهو null بشه.
-     */
     public function customer()
     {
         return $this->belongsTo(User::class, 'customerID', 'userID')->withTrashed();

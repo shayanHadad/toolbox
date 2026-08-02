@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
@@ -29,7 +29,7 @@ class ExpertDashboardController extends Controller
         ];
 
         $recentMessages = $user->receivedMessages()
-            ->where('status', 0) // فقط پیام‌های واقعاً خوانده‌نشده
+            ->where('status', 0)
             ->with('sender')
             ->orderByDesc('messageID')
             ->get()

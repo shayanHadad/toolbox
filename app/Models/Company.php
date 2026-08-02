@@ -1,5 +1,5 @@
 <?php
-
+//--//
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -26,18 +26,15 @@ class Company extends Model
         return $this->hasMany(CompanyAdmin::class, 'companyID', 'companyID');
     }
 
-    /**
-     * آی‌دیِ تمام کاربرهایی که تا الان نماینده‌ی این شرکت بوده‌ن (role=3،
-     * role=4)، از جمله اون‌هایی که soft-delete شدن. برای این‌که تشخیص
-     * «این پیام رو یه عضو شرکت فرستاده» یا رزولوشنِ تاریخچه‌ی مکالمه‌ها
-     * درست بمونه، حتی بعد از حذف یه ادمین/مالک.
-     */
+    // Return all the company admins (Even ones that got soft-deleted)
     public function repUserIds(): array
     {
         return $this->admins()
-            ->with(['users' => fn ($q) => $q->withTrashed()])
+            ->with(['users' => function ($q) { // Even the users that got soft deleted
+                return $q->withTrashed();
+            }])
             ->get()
-            ->flatMap->users
+            ->flatMap->users // Create a flat map instead of having a matrix
             ->pluck('userID')
             ->all();
     }
@@ -57,12 +54,9 @@ class Company extends Model
         return $this->hasMany(Order::class, 'companyID', 'companyID');
     }
 
-    /**
-     * سفارش‌های این شرکت که برای $user (نماینده‌ی شرکت) قابل مشاهده‌ست:
-     * - مالک شرکت (role=4): همه‌ی سفارش‌ها، بدون هیچ محدودیتی.
-     * - ادمین شرکت (role=3): فقط سفارش‌هایی که هنوز تأیید یا رد نشدن
-     *   (status = waiting)؛ به محض تأیید یا ردشدن، از دیدش خارج می‌شن.
-     */
+    // Return orders based on role
+    // Role = 4 -> All the orders
+    // Role = 3 -> Only orders with Waiting status
     public function ordersVisibleTo(User $user)
     {
         $query = $this->orders();
@@ -84,11 +78,8 @@ class Company extends Model
         );
     }
 
-    /**
-     * یه کاربر ادمین این شرکت که بشه بهش پیام داد (اولین ادمینِ در دسترس).
-     * اگه شرکت هنوز هیچ کاربر ادمینی نداشته باشه null برمی‌گرده.
-     */
-    public function contactUser(): ?User
+    // Return the first available admin
+    public function contactUser(): ?User // Output is a user or it's null
     {
         foreach ($this->admins as $admin) {
             $user = $admin->users->first();
@@ -96,18 +87,10 @@ class Company extends Model
                 return $user;
             }
         }
-
         return null;
     }
 
-    /**
-     * مالک این شرکت (role=4)؛ برخلاف contactUser() که فقط اولین ادمینِ
-     * در دسترس رو برمی‌گردونه، این متد مشخصاً دنبال کاربری با role=4
-     * می‌گرده. برای پنل ادمین کل لازمه که مالک هر شرکت رو نشون بده.
-     * از property access استفاده می‌کنه (نه متد admins())، تا اگه
-     * رابطه‌ی admins.users از قبل eager-load شده باشه، کوئری تکراری
-     * نزنه.
-     */
+    // Return the company owner 
     public function owner(): ?User
     {
         foreach ($this->admins as $admin) {
