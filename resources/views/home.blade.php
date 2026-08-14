@@ -182,6 +182,28 @@
                                 <span class="t-role">{{ $order->provider->expertDetail->category->category_name ?? 'مشتری جعبه‌ابزار' }}</span>
                             </span>
                         </div>
+                        @if($order->providerID)
+                        <a href="{{ route('experts.show', $order->providerID) }}">
+                            <div class="t-person">
+                                <span class="t-avatar" style="background-image:url('{{ asset('images/expert.png') }}')"></span>
+                                <span>
+                                    <span class="t-name">{{ $order->provider->first_name ?? 'متخصص' }} {{ $order->provider->last_name ?? '' }}</span><br>
+                                    <span class="t-role">{{ $order->provider->expertDetail->category->category_name ?? 'متخصص جعبه‌ابزار' }}</span>
+                                </span>
+                            </div>
+                        </a>
+                        @elseif($order->companyID)
+                        <a href="{{ route('companies.show', $order->companyID) }}">
+                            <div class="t-person">
+                                <span class="t-avatar" style="background-image:url('{{ asset('images/company.png') }}')"></span>
+                                <span>
+                                    <span class="t-name">{{ $order->company->name ?? 'شرکت' }}</span><br>
+                                    <span class="t-role">شرکت خدماتی</span>
+                                </span>
+                            </div>
+                        </a>
+                        @endif
+
                 </div>
                 @empty
                 <p style="text-align:center;color:var(--text-light);grid-column:1/-1;">

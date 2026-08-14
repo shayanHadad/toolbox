@@ -17,7 +17,7 @@ class HomeController extends Controller
         $comments = Order::query()
             ->whereNotNull('comment')
             ->whereNotNull('rating')
-            ->with(['customer', 'provider.expertDetail.category'])
+            ->with(['customer', 'provider.expertDetail.category', 'company'])
             ->latest('order_date')
             ->take(8)
             ->get();
