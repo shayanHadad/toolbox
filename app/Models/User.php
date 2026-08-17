@@ -2,13 +2,15 @@
 //--//
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable; // So laravel can (login | logout | ...)
 use Illuminate\Notifications\Notifiable; // If user needed to be notified
 
 class User extends Authenticatable
 {
-    use Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes;
 
     protected $table = 'users';
 
