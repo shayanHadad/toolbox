@@ -28,7 +28,7 @@ You'll need PHP 8.2+, Composer, and MySQL installed first.
 ```bash
 # 1. Clone it
 git clone https://github.com/shayanHadad/toolbox.git
-cd <toolbox>
+cd toolbox
 
 # 2. Install dependencies
 composer install
